@@ -6,7 +6,8 @@ class App:
     def __init__(self, root):
         root.title("SpectraDynamics")
         tabControl = ttk.Notebook(root)
-        tab1 = Lifetime(tabControl)#ttk.Frame(tabControl)
+        lifetime = Lifetime(tabControl)#ttk.Frame(tabControl)
+        tab1 = lifetime.frame
         tab2 = ttk.Frame(tabControl)
         tabControl.add(tab1, text ='Lifetime')
         tabControl.add(tab2, text ='Tab 2')
