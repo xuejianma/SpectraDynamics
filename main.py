@@ -1,16 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
 from pages.lifetime import Lifetime
+from pages.test import Test
 
 class App:
     def __init__(self, root):
         root.title("SpectraDynamics")
         tabControl = ttk.Notebook(root)
         lifetime = Lifetime(tabControl)#ttk.Frame(tabControl)
-        tab1 = lifetime.frame
-        tab2 = ttk.Frame(tabControl)
-        tabControl.add(tab1, text ='Lifetime')
-        tabControl.add(tab2, text ='Tab 2')
+        test = Test(tabControl)
+        tab1 = test.frame
+        tab2 = lifetime.frame
+        tabControl.add(tab1, text ='Test')
+        tabControl.add(tab2, text ='Lifetime')
         tabControl.pack(expand = 1, fill ="both")
         # lifetime = Lifetime(root)
         # lifetime.pack()

@@ -3,13 +3,12 @@ from time import sleep, time
 from tkinter import ttk
 from datetime import timedelta
 
-"""
-TODO: estimate time remaining
-"""
 
 RUNNING = 0
-PAUSED = 1
-TERMINATED = 2
+PAUSING = 1
+PAUSED = 2
+TERMINATING = 3
+TERMINATED = 4
 
 
 class Task:
@@ -31,15 +30,6 @@ class Task:
         self.time_per_iteration = 0
         self.frame, self.button_start, self.button_pause, self.button_terminate, \
             self.progress_bar, self.label_remaining = self.set_frame()
-
-    def get_remaining_time(self):
-        """
-        Get the remaining time.
-        """
-        remaining_time = int(self.time_per_iteration * (self.num - self.i - 1))
-        if remaining_time <= 0:
-            return "--:--:--"
-        return str(timedelta(seconds=remaining_time))
 
     def set_frame(self):
         """
@@ -70,12 +60,20 @@ class Task:
         button_termiante.pack(side="left")
         return frame, button_start, button_pause, button_termiante, progress_bar, label_remaining
 
+    def get_remaining_time(self):
+        """
+        Get the remaining time.
+        """
+        remaining_time = int(self.time_per_iteration * (self.num - self.i - 1))
+        if remaining_time <= 0:
+            return "--:--:--"
+        return str(timedelta(seconds=remaining_time))
+
     def start(self):
         """
         Start the task loop in a thread.
         """
         if self.status != RUNNING:
-            # print(self.frame.children)
             self.status = RUNNING
             self.label_remaining.config(text=self.get_remaining_time())
             self.progress_bar["value"] = self.i / self.num * 100
@@ -95,18 +93,16 @@ class Task:
             self.time_per_iteration = (
                 self.time_per_iteration * self.i + time_end - time_start) / (self.i + 1)
             self.label_remaining.config(text=self.get_remaining_time())
-            if self.status != RUNNING:
-                # self.label
-                self.button_start["state"] = "normal"
-                if self.status == TERMINATED:
-                    self.reset_after_complete()
             self.i += 1
             self.progress_bar["value"] = self.i / self.num * 100
-        if self.running:
-            self.reset_after_complete()
-            # self.progress_bar["value"] = 100
+        if self.status == RUNNING:
+            self.reset()
             self.label_remaining.config(text="Done!")
-        # pass
+        elif self.status == TERMINATING:
+            self.reset()
+        elif self.status == PAUSING:
+            self.button_start["state"] = "normal"
+            self.status = PAUSED
 
     def task(self):
         """
@@ -114,39 +110,36 @@ class Task:
         overwritten by users. Make sure to use self.i as the loop counter.
         """
         print(self.i)
-        sleep(1)
+        sleep(5)
 
-    def reset_after_complete(self):
+    def reset(self):
         """
         Reset the task to the initial state.
         """
         self.status = TERMINATED
         self.i = 0
+        self.time_per_iteration = 0
         self.button_terminate["state"] = "disabled"
         self.button_pause["state"] = "disabled"
         self.button_start["state"] = "normal"
         self.button_start.config(text="Start")
-        
+        self.progress_bar["value"] = 0
+        self.label_remaining.config(text=self.get_remaining_time())
 
     def pause(self):
         """
         Pause the task.
         """
-        self.status = PAUSED
+        self.status = PAUSING
         self.button_pause["state"] = "disabled"
-        # self.button_start["state"] = "normal"
         self.button_start.config(text="Resume")
 
     def terminate(self):
         """
         Terminate the task.
         """
-        self.status = TERMINATED
-        self.i = 0
-        # self.button_terminate["state"] = "disabled"
-        # self.button_pause["state"] = "disabled"
-        # # self.button_start["state"] = "normal"
-        # self.progress_bar["value"] = 0
-        # self.button_start.config(text="Start")
-        # self.label_remaining.config(text=self.get_remaining_time())
-        self.reset_after_complete()
+        if self.status == PAUSED:
+            self.reset()
+        self.status = TERMINATING
+        self.button_pause["state"] = "disabled"
+        self.button_terminate["state"] = "disabled"
