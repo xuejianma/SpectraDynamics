@@ -8,7 +8,7 @@ class Lifetime:
     def __init__(self, parent):
         self.parent = parent
         self.frame = self.set_frame()
-        self.measure_task = Task(self.frame)
+        self.measure_task = Task(self.frame, num=10)
         self.button = ttk.Button(self.frame, text="Check Threads", command=self.thread_check)
         self.button.pack()
     def thread_check(self):
