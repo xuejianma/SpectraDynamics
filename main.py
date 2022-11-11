@@ -9,10 +9,10 @@ class App:
         tabControl = ttk.Notebook(root)
         lifetime = Lifetime(tabControl)#ttk.Frame(tabControl)
         test = Test(tabControl)
-        tab1 = test.frame
-        tab2 = lifetime.frame
-        tabControl.add(tab1, text ='Test')
-        tabControl.add(tab2, text ='Lifetime')
+        tab1 = lifetime.frame
+        tab2 = test.frame
+        tabControl.add(tab1, text ='Lifetime')
+        tabControl.add(tab2, text ='Test')
         tabControl.pack(expand = 1, fill ="both")
         # lifetime = Lifetime(root)
         # lifetime.pack()

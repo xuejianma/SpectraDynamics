@@ -8,7 +8,7 @@ class Test:
     def __init__(self, parent):
         self.frame = ttk.Frame(parent)
         self.frame.pack()
-        self.random_data_generator = RandomDataGenerator(self.frame, num=10)
+        # self.random_data_generator = RandomDataGenerator(self.frame, num=10)
     def test(self):
         print("Test")
 
@@ -22,6 +22,10 @@ class RandomDataGenerator(Task):
         sleep(1)
         self.data.append(np.random.random())
         self.plot.plot(self.data, ".-", c="r")
+
+    def start(self):
+        super().start()
+        self.plot.clear()
 
     def reset(self):
         super().reset()

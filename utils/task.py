@@ -18,13 +18,13 @@ class Task:
     pre-set in self.frame for easy use.
     """
 
-    def __init__(self, parent, num):
+    def __init__(self, parent, var_num):
         """
         :param parent: parent widget
         :param num: total number of iterations for self.i in task_loop to iterate
         """
         self.i = 0
-        self.num = num
+        self.var_num = var_num
         self.status = TERMINATED
         self.parent = parent
         self.time_per_iteration = 0
@@ -64,7 +64,7 @@ class Task:
         """
         Get the remaining time.
         """
-        remaining_time = int(self.time_per_iteration * (self.num - self.i - 1))
+        remaining_time = int(self.time_per_iteration * (int(self.var_num.get()) - self.i - 1))
         if remaining_time <= 0:
             return "--:--:--"
         return str(timedelta(seconds=remaining_time))
@@ -76,7 +76,7 @@ class Task:
         if self.status != RUNNING:
             self.status = RUNNING
             self.label_remaining.config(text=self.get_remaining_time())
-            self.progress_bar["value"] = self.i / self.num * 100
+            self.progress_bar["value"] = self.i / int(self.var_num.get()) * 100
             self.button_start["state"] = "disabled"
             self.button_pause["state"] = "normal"
             self.button_terminate["state"] = "normal"
@@ -86,7 +86,7 @@ class Task:
         """
         Loop that runs the user-customized task.
         """
-        while self.status == RUNNING and self.i < self.num:
+        while self.status == RUNNING and self.i < int(self.var_num.get()):
             time_start = time()
             self.task()
             time_end = time()
@@ -94,7 +94,7 @@ class Task:
                 self.time_per_iteration * self.i + time_end - time_start) / (self.i + 1)
             self.label_remaining.config(text=self.get_remaining_time())
             self.i += 1
-            self.progress_bar["value"] = self.i / self.num * 100
+            self.progress_bar["value"] = self.i / int(self.var_num.get()) * 100
         if self.status == RUNNING:
             self.reset()
             self.label_remaining.config(text="Done!")
