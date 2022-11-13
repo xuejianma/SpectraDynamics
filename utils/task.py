@@ -103,6 +103,9 @@ class Task:
         elif self.status == PAUSING:
             self.button_start["state"] = "normal"
             self.status = PAUSED
+            if self.i == int(self.var_num.get()):
+                self.reset()
+                self.label_remaining.config(text="Done!")
 
     def task(self):
         """

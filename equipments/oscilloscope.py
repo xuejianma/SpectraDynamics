@@ -79,4 +79,4 @@ class OscilloscopeSimulator:
     def get_data(self, loading_time, label_oscilloscope_error, start=1, points=70000000,):
         sleep(loading_time)
         X = np.linspace(0, 0.0001 * 14, 1400, endpoint=False)
-        return (X, np.sin(10000 * X) + np.random.random(1400))
+        return (X, np.sin(10000 * X) + np.random.random(1400), np.cos(10000 * X) + np.random.random(1400))
