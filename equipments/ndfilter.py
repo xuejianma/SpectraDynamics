@@ -1,4 +1,7 @@
-import utils.thorlabs_apt as apt # thorlab_apt package from https://github.com/qpit/thorlabs_apt
+try:
+    import utils.thorlabs_apt as apt # thorlab_apt package from https://github.com/qpit/thorlabs_apt
+except:
+    pass
 from time import sleep
 # from utils.config import VARIABLES
 

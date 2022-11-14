@@ -23,9 +23,7 @@ class Powermeter:
         self.instrument.write('CORRection:WAVelength ' + str(wavelength))
 
     def get_power(self):
-        self.mutex.lock()
         ret = float(self.instrument.query('Measure:Scalar:POWer?'))
-        self.mutex.unlock()
         return ret
 
     def get_power_uW(self):
@@ -42,4 +40,5 @@ class PowermeterSimulator:
         return self.power
 
     def get_power_uW(self):
-        return self.power * 1e6
+        from random import random
+        return self.power * 1e6 + random()

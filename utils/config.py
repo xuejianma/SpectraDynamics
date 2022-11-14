@@ -2,6 +2,7 @@ import configparser
 import tkinter as tk
 from equipments.oscilloscope import OscilloscopeSimulator
 from equipments.ndfilter import NDFilterSimulator
+from equipments.powermeter import PowermeterSimulator
 from datetime import datetime
 
 
@@ -17,6 +18,7 @@ class Variables:
         self.var_spinbox_lifetime_wait_time = tk.StringVar(value=6)
         self.var_spinbox_set_angle = tk.StringVar(value=0)
         self.var_entry_curr_angle = tk.StringVar(value=0)
+        self.var_entry_curr_power = tk.StringVar(value=0)
 
 
 class Instances:
@@ -27,6 +29,7 @@ class Instances:
     def initialize_instances(self):
         self.oscilloscope = OscilloscopeSimulator()
         self.ndfilter = NDFilterSimulator()
+        self.powermeter = PowermeterSimulator()
 
 
 class Default:
