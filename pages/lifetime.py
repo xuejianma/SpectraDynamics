@@ -5,18 +5,17 @@ from utils.task import Task
 from utils.plot import Plot
 from utils.spinbox import Spinbox
 from utils.save import Save
-from utils.config import VARIABLES
-from equipments.oscilloscope import OscilloscopeSimulator
+from utils.config import VARIABLES, INSTANCES
 
 
 class Lifetime:
     def __init__(self, parent) -> None:
-        self.oscilloscope = OscilloscopeSimulator()
+        self.oscilloscope = INSTANCES.oscilloscope
         self.frame = self.set_frame(parent)
 
     def set_frame(self, parent):
-        var_num = VARIABLES.var_spinbox_lifetime_num#tk.StringVar(value=20)
-        var_wait_time = VARIABLES.var_spinbox_lifetime_wait_time#tk.StringVar(value=6)
+        # var_num = VARIABLES.var_spinbox_lifetime_num#tk.StringVar(value=20)
+        # var_wait_time = VARIABLES.var_spinbox_lifetime_wait_time#tk.StringVar(value=6)
         frame = ttk.Frame(parent)
         frame_1 = ttk.Frame(frame)
         frame_1.pack(side="top", anchor="w", padx=10, pady=10)
@@ -39,27 +38,26 @@ class Lifetime:
         frame_1_1_1 = ttk.Frame(frame_1_1)
         frame_1_1_1.pack(side="top", anchor="w")
         ttk.Label(frame_1_1_1, text="Number of measurements: ").grid(row=0, column=0, pady=4)
-        spinbox_num = Spinbox(frame_1_1_1, from_=0, to=100, textvariable=var_num)
+        spinbox_num = Spinbox(frame_1_1_1, from_=0, to=100, textvariable=VARIABLES.var_spinbox_lifetime_num)
         spinbox_num.grid(row=0, column=1)
         ttk.Label(frame_1_1_1, text="Wait time (s): ").grid(row=1, column=0, sticky="w", pady=4)
-        Spinbox(frame_1_1_1, from_=0, textvariable=var_wait_time).grid(row=1, column=1)
+        Spinbox(frame_1_1_1, from_=0, to=float("inf"), textvariable=VARIABLES.var_spinbox_lifetime_wait_time).grid(row=1, column=1)
         plot_lifetime_instant_ch1 = Plot(frame_2_1)
         plot_lifetime_average_ch1 = Plot(frame_2_2)
         plot_lifetime_instant_ch2 = Plot(frame_3_1)
         plot_lifetime_average_ch2 = Plot(frame_3_2)
         save = Save(frame_1_1, VARIABLES.var_entry_lifetime_directory, VARIABLES.var_entry_lifetime_filename)
-        lifetime_task = LifetimeTask(frame_1_2, self.oscilloscope, var_num, var_wait_time, save, spinbox_num,
+        LifetimeTask(frame_1_2, self.oscilloscope,  save, spinbox_num,
                                      plot_lifetime_instant_ch1, plot_lifetime_average_ch1, plot_lifetime_instant_ch2, plot_lifetime_average_ch2)
 
         return frame
 
 
 class LifetimeTask(Task):
-    def __init__(self, parent, oscilloscope, var_num, var_wait_time, save, spinbox_num, plot_lifetime_instant_ch1, plot_lifetime_average_ch1, plot_lifetime_instant_ch2, plot_lifetime_average_ch2):
-        super().__init__(parent, var_num)
+    def __init__(self, parent, oscilloscope, save, spinbox_num, plot_lifetime_instant_ch1, plot_lifetime_average_ch1, plot_lifetime_instant_ch2, plot_lifetime_average_ch2):
+        super().__init__(parent, VARIABLES.var_spinbox_lifetime_num)
         self.oscilloscope = oscilloscope
-        self.num_spinbox = spinbox_num
-        self.var_wait_time = var_wait_time
+        self.spinbox_num = spinbox_num
         self.X = None
         self.save = save
         self.save.data_dict["header"] = ["Time(s)", "Ch1(V)", "Ch2(V)"]
@@ -72,7 +70,7 @@ class LifetimeTask(Task):
 
     def task(self):
         self.X, curr_data_ch1, curr_data_ch2 = self.oscilloscope.get_data(
-            int(self.var_wait_time.get()), None)
+            int(VARIABLES.var_spinbox_lifetime_wait_time.get()), None)
         self.data_ch1 = np.asarray(self.data_ch1) * (self.i / (self.i + 1)) + np.asarray(
             curr_data_ch1) * (1 / (self.i + 1)) if self.i > 0 else curr_data_ch1
         self.data_ch2 = np.asarray(self.data_ch2) * (self.i / (self.i + 1)) + np.asarray(
@@ -88,12 +86,12 @@ class LifetimeTask(Task):
             self.X, self.data_ch2, "-", c="black", linewidth=0.5)
 
     def start(self):
-        self.num_spinbox.config(state="disabled")
+        self.spinbox_num.config(state="disabled")
         super().start()
 
     def reset(self):
         super().reset()
-        self.num_spinbox.config(state="normal")
+        self.spinbox_num.config(state="normal")
 
     def save_data(self):
         data_to_save = np.stack((self.X, self.data_ch1, self.data_ch2), axis=1)

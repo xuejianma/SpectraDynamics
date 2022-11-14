@@ -16,7 +16,7 @@ class Spinbox(ttk.Spinbox):
         if not new_value:
             return True
         try:
-            new_value = int(new_value)
+            new_value = float(new_value)
         except ValueError:
             return False
         if self.from_ is not None and new_value < self.from_:
