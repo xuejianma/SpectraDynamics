@@ -38,7 +38,7 @@ class Lifetime:
         frame_1_1_1 = ttk.Frame(frame_1_1)
         frame_1_1_1.pack(side="top", anchor="w")
         ttk.Label(frame_1_1_1, text="Number of measurements: ").grid(row=0, column=0, pady=4)
-        spinbox_num = Spinbox(frame_1_1_1, from_=0, to=100, textvariable=VARIABLES.var_spinbox_lifetime_num)
+        spinbox_num = Spinbox(frame_1_1_1, from_=1, to=float("inf"), textvariable=VARIABLES.var_spinbox_lifetime_num)
         spinbox_num.grid(row=0, column=1)
         ttk.Label(frame_1_1_1, text="Wait time (s): ").grid(row=1, column=0, sticky="w", pady=4)
         Spinbox(frame_1_1_1, from_=0, to=float("inf"), textvariable=VARIABLES.var_spinbox_lifetime_wait_time).grid(row=1, column=1)
@@ -55,7 +55,7 @@ class Lifetime:
 
 class LifetimeTask(Task):
     def __init__(self, parent, oscilloscope, save, spinbox_num, plot_lifetime_instant_ch1, plot_lifetime_average_ch1, plot_lifetime_instant_ch2, plot_lifetime_average_ch2):
-        super().__init__(parent, VARIABLES.var_spinbox_lifetime_num)
+        super().__init__(parent)
         self.oscilloscope = oscilloscope
         self.spinbox_num = spinbox_num
         self.X = None
@@ -86,6 +86,7 @@ class LifetimeTask(Task):
             self.X, self.data_ch2, "-", c="black", linewidth=0.5)
 
     def start(self):
+        self.num = int(float(VARIABLES.var_spinbox_lifetime_num.get()))
         self.spinbox_num.config(state="disabled")
         super().start()
 

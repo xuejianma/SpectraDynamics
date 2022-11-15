@@ -25,6 +25,9 @@ class Variables:
         self.var_entry_curr_power = tk.StringVar(value=0)
         self.var_entry_curr_actuator_position = tk.StringVar(value=0)
         self.var_spinbox_target_actuator_position = tk.StringVar(value=0)
+        self.var_spinbox_sweep_start_wavelength = tk.StringVar(value=0)
+        self.var_spinbox_sweep_end_wavelength = tk.StringVar(value=0)
+        self.var_spinbox_sweep_step_size = tk.StringVar(value=0)
 
 
 class Instances:
