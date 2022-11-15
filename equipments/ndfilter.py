@@ -14,10 +14,10 @@ class NDFilter:
             print(e)
     def get_angle(self):
         return self.motor.position
-    def set_angle(self):
+    def set_angle(self, angle):
         # prev_angle = self.ndfilter_controller.get_angle()
-        self.ndfilter_controller.motor.move_to(self.angle)
-        while self.ndfilter_controller.motor.is_in_motion:
+        self.motor.move_to(angle)
+        while self.motor.is_in_motion:
             sleep(0.1)
         #     sleep(0.1)
         #     curr_angle = self.ndfilter_controller.get_angle()

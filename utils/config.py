@@ -3,6 +3,8 @@ import tkinter as tk
 from equipments.oscilloscope import OscilloscopeSimulator
 from equipments.ndfilter import NDFilterSimulator
 from equipments.powermeter import PowermeterSimulator
+from equipments.monochromator import MonochromatorSimulator
+from equipments.actuator import ActuatorSimulator
 from datetime import datetime
 
 
@@ -16,9 +18,13 @@ class Variables:
         self.var_entry_lifetime_filename = tk.StringVar()
         self.var_spinbox_lifetime_num = tk.StringVar(value=20)
         self.var_spinbox_lifetime_wait_time = tk.StringVar(value=6)
-        self.var_spinbox_set_angle = tk.StringVar(value=0)
+        self.var_entry_curr_wavelength = tk.StringVar(value=0)
+        self.var_spinbox_target_wavelength = tk.StringVar(value=0)
         self.var_entry_curr_angle = tk.StringVar(value=0)
+        self.var_spinbox_target_angle = tk.StringVar(value=0)
         self.var_entry_curr_power = tk.StringVar(value=0)
+        self.var_entry_curr_actuator_position = tk.StringVar(value=0)
+        self.var_spinbox_target_actuator_position = tk.StringVar(value=0)
 
 
 class Instances:
@@ -30,6 +36,14 @@ class Instances:
         self.oscilloscope = OscilloscopeSimulator()
         self.ndfilter = NDFilterSimulator()
         self.powermeter = PowermeterSimulator()
+        self.monochromator = MonochromatorSimulator()
+        self.actuator = ActuatorSimulator()
+        self.initialize_readings() # Initialize readings from equipments after instances are created.
+
+    def initialize_readings(self):
+        VARIABLES.var_entry_curr_angle.set(round(self.ndfilter.get_angle(), 4))
+        VARIABLES.var_entry_curr_wavelength.set(round(self.monochromator.get_wavelength(), 4))
+        VARIABLES.var_entry_curr_actuator_position.set(round(self.actuator.get_position(), 4))
 
 
 class Default:
