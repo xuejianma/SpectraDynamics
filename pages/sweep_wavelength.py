@@ -194,8 +194,7 @@ class SetWavelengthTask():
     def __init__(self, button_set_wavelength) -> None:
         self.button_set_wavelength = button_set_wavelength
 
-    def task_loop(self):
-        self.button_set_wavelength.config(state="disabled")
+    def task_loop_sweep(self):
         try:
             INSTANCES.monochromator.set_wavelength(
                 float(VARIABLES.var_spinbox_target_wavelength.get()))
@@ -203,6 +202,10 @@ class SetWavelengthTask():
                 round(INSTANCES.monochromator.get_wavelength(), 4))
         except Exception as e:
             LOGGER.log(e)
+
+    def task_loop(self):
+        self.button_set_wavelength.config(state="disabled")
+        self.task_loop_sweep()
         self.button_set_wavelength.config(state="normal")
 
     def start(self):
@@ -236,6 +239,7 @@ class SweepWavelengthTask(Task):
         self.spinbox_sweep_start_wavelength = spinbox_sweep_start_wavelength
         self.spinbox_sweep_end_wavelength = spinbox_sweep_end_wavelength
         self.spinbox_sweep_step_size = spinbox_sweep_step_size
+        self.set_wavelength_task = set_wavelength_task
         self.start_wavelength = float(
             VARIABLES.var_spinbox_sweep_start_wavelength.get())
         self.end_wavelength = float(
@@ -244,7 +248,10 @@ class SweepWavelengthTask(Task):
         self.curr_wavelength = self.start_wavelength
 
     def task(self):
-        pass
+        VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
+        self.set_wavelength_task.task_loop_sweep()
+        self.curr_wavelength += self.step_size
+        sleep(1)
         # start_wavelength = float(self.spinbox_sweep_start_wavelength.get())
         # end_wavelength = float(self.spinbox_sweep_end_wavelength.get())
         # step_size = float(self.spinbox_sweep_step_size.get())

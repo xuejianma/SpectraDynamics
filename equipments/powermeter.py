@@ -1,14 +1,12 @@
-# from pyvisa import ResourceManager
+from pyvisa import ResourceManager
 
 
 class Powermeter:
-    # mutex = QMutex()
 
     def __init__(self):
-        self.rm = None#ResourceManager()
+        self.rm = ResourceManager()
         self.instrument = None
         usb_list = self.rm.list_resources()
-        # print(usb_list)
         for item in usb_list:
             if "P0016683" in item:
                 self.instrument = self.rm.open_resource(item)
@@ -41,4 +39,9 @@ class PowermeterSimulator:
 
     def get_power_uW(self):
         from random import random
-        return self.power * 1e6 + random()
+        from utils.config import VARIABLES
+        import numpy as np
+        wavelength = float(VARIABLES.var_entry_curr_wavelength.get())
+        actuator_position = float(VARIABLES.var_entry_curr_actuator_position.get())
+        angle = float(VARIABLES.var_entry_curr_angle.get())
+        return 20 * np.exp(-0.05*abs(wavelength-actuator_position*40-400))*np.exp(-0.05*abs(angle)) + 0.1 * (random() - 0.5)
