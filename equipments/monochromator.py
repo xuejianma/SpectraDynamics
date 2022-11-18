@@ -1,3 +1,5 @@
+import warnings
+warnings.simplefilter("ignore", UserWarning) # Ignore UserWarning from pywinauto
 from pywinauto.application import Application
 from time import sleep
 
