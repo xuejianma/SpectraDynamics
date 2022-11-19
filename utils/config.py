@@ -1,10 +1,10 @@
 import configparser
 import tkinter as tk
-from equipments.oscilloscope import Oscilloscope
-from equipments.ndfilter import NDFilter#Simulator
-from equipments.powermeter import Powermeter#Simulator
-from equipments.monochromator import Monochromator#Simulator
-from equipments.actuator import Actuator#Simulator
+from equipments.oscilloscope import OscilloscopeSimulator
+from equipments.ndfilter import NDFilterSimulator
+from equipments.powermeter import PowermeterSimulator
+from equipments.monochromator import MonochromatorSimulator
+from equipments.actuator import ActuatorSimulator
 from datetime import datetime
 
 
@@ -36,11 +36,11 @@ class Instances:
     """
 
     def initialize_instances(self):
-        self.oscilloscope = Oscilloscope()
-        self.ndfilter = NDFilter()#Simulator()
-        self.powermeter = Powermeter()#Simulator()
-        self.monochromator = Monochromator()#Simulator()
-        self.actuator = Actuator()#Simulator()
+        self.oscilloscope = OscilloscopeSimulator()
+        self.ndfilter = NDFilterSimulator()
+        self.powermeter = PowermeterSimulator()
+        self.monochromator = MonochromatorSimulator()
+        self.actuator = ActuatorSimulator()
         self.initialize_readings() # Initialize readings from equipments after instances are created.
 
     def initialize_readings(self):

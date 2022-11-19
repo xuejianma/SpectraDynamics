@@ -1,11 +1,12 @@
 from pyvisa import ResourceManager
-
+from time import sleep
 
 class Powermeter:
 
     def __init__(self):
         self.valid = False
         self.error_message = ""
+        self.power = 0
         try:
             self.rm = ResourceManager()
             self.instrument = None
@@ -23,7 +24,12 @@ class Powermeter:
         self.instrument.write('CORRection:WAVelength ' + str(wavelength))
 
     def get_power(self):
-        ret = float(self.instrument.query('Measure:Scalar:POWer?'))
+        power_sum = 0
+        num = 10
+        for _ in range(num):
+            power_sum += float(self.instrument.query('Measure:Scalar:POWer?'))
+        ret = power_sum / num
+        self.power = ret
         return ret
 
     def get_power_uW(self):
@@ -48,4 +54,5 @@ class PowermeterSimulator:
         wavelength = float(VARIABLES.var_entry_curr_wavelength.get())
         actuator_position = float(VARIABLES.var_entry_curr_actuator_position.get())
         angle = float(VARIABLES.var_entry_curr_angle.get())
+        sleep(0.2)
         return 20 * np.exp(-0.05*abs(wavelength-actuator_position*40-400))*np.exp(-0.05*abs(angle)) + 0.1 * (random() - 0.5)
