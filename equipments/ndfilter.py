@@ -1,34 +1,40 @@
 try:
-    import utils.thorlabs_apt as apt # thorlab_apt package from https://github.com/qpit/thorlabs_apt
+    # thorlab_apt package from https://github.com/qpit/thorlabs_apt
+    import utils.thorlabs_apt as apt
 except:
     pass
 from time import sleep
-# from utils.config import VARIABLES
 
 
 class NDFilter:
-    def __init__(self, serial_number = 55254094):
+    def __init__(self, serial_number=55254094):
+        self.valid = False
+        self.error_message = ""
         try:
             self.motor = apt.Motor(serial_number)
+            self.valid = True
         except Exception as e:
-            print(e)
+            self.valid = False
+            self.error_message = e
+
     def get_angle(self):
         return self.motor.position
+
     def set_angle(self, angle):
-        # prev_angle = self.ndfilter_controller.get_angle()
         self.motor.move_to(angle)
         while self.motor.is_in_motion:
             sleep(0.1)
-        #     sleep(0.1)
-        #     curr_angle = self.ndfilter_controller.get_angle()
-        #     self.progress = int((curr_angle - prev_angle) / (self.angle - prev_angle) * 100) if self.angle != prev_angle else 0
-        # self.progress = 100
+
 
 class NDFilterSimulator:
     def __init__(self):
+        self.valid = True
+        self.error_message = ""
         self.angle = 0
+
     def get_angle(self):
         return self.angle
+
     def set_angle(self, angle):
         sleep(1)
         self.angle = angle

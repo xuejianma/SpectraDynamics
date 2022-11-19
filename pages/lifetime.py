@@ -14,8 +14,6 @@ class Lifetime:
         self.frame = self.set_frame(parent)
 
     def set_frame(self, parent):
-        # var_num = VARIABLES.var_spinbox_lifetime_num#tk.StringVar(value=20)
-        # var_wait_time = VARIABLES.var_spinbox_lifetime_wait_time#tk.StringVar(value=6)
         frame = ttk.Frame(parent)
         frame_1 = ttk.Frame(frame)
         frame_1.pack(side="top", anchor="w", padx=10, pady=10)
@@ -70,7 +68,7 @@ class LifetimeTask(Task):
 
     def task(self):
         self.X, curr_data_ch1, curr_data_ch2 = self.oscilloscope.get_data(
-            int(VARIABLES.var_spinbox_lifetime_wait_time.get()), None)
+            int(VARIABLES.var_spinbox_lifetime_wait_time.get()))
         self.data_ch1 = np.asarray(self.data_ch1) * (self.i / (self.i + 1)) + np.asarray(
             curr_data_ch1) * (1 / (self.i + 1)) if self.i > 0 else curr_data_ch1
         self.data_ch2 = np.asarray(self.data_ch2) * (self.i / (self.i + 1)) + np.asarray(

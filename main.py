@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from pages.lifetime import Lifetime
 from pages.sweep_wavelength import SweepWavelength
+from pages.device_manager import DeviceManager
 from pages.test import Test
 from utils.status_bar import StatusBar
 from utils.config import LOGGER, VARIABLES, DEFAULT, INSTANCES
@@ -21,10 +22,12 @@ class App:
         test = Test(tabControl)
         tab1 = lifetime.frame
         tab2 = SweepWavelength(tabControl).frame
-        tab3 = test.frame
-        tabControl.add(tab2, text='Sweep Wavelength')
+        tab3 = DeviceManager(tabControl).frame
+        tab4 = test.frame
         tabControl.add(tab1, text='Lifetime')
-        tabControl.add(tab3, text='Test')
+        tabControl.add(tab2, text='Sweep Wavelength')
+        tabControl.add(tab3, text='Device Manager')
+        tabControl.add(tab4, text='Test')
         tabControl.pack(expand=1, fill="both")
         self.status_bar = StatusBar(self.root, LOGGER.status)
         self.status_bar.pack(side="bottom", fill="x")

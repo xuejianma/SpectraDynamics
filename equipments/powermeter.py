@@ -4,18 +4,20 @@ from pyvisa import ResourceManager
 class Powermeter:
 
     def __init__(self):
-        self.rm = ResourceManager()
-        self.instrument = None
-        usb_list = self.rm.list_resources()
-        for item in usb_list:
-            if "P0016683" in item:
-                self.instrument = self.rm.open_resource(item)
-                break
-        if self.instrument is None:
-            self.error()
-
-    def error(self):
-        raise ValueError()
+        self.valid = False
+        self.error_message = ""
+        try:
+            self.rm = ResourceManager()
+            self.instrument = None
+            usb_list = self.rm.list_resources()
+            for item in usb_list:
+                if "P0016683" in item:
+                    self.instrument = self.rm.open_resource(item)
+                    break
+            self.valid = True
+        except Exception as e:
+            self.valid = False
+            self.error_message = e
 
     def set_wavelength(self, wavelength):
         self.instrument.write('CORRection:WAVelength ' + str(wavelength))
@@ -29,6 +31,8 @@ class Powermeter:
 
 class PowermeterSimulator:
     def __init__(self):
+        self.valid = True
+        self.error_message = ""
         self.power = 1e-5
 
     def set_wavelength(self, wavelength):
