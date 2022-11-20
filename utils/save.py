@@ -40,8 +40,14 @@ class Save:
         entry_filename.pack(side="left")
         button = ttk.Button(frame_2, text="Save", command=self.save)
         button.pack(side="left")
-        label_note = ttk.Label(frame_3, text="Note: " + "/".join(map(lambda item: "\"{" + item + "}\"", ["date", "time"] + list(self.substitute_dict.keys()))) +
-                               " can be replaced by the current "+"/".join(["date", "time"] + list(self.substitute_dict.keys())), font="TkDefaultFont 8")
+        label_note = ttk.Label(frame_3, text="Note: " +
+                               "/".join(map(lambda item: "\"{" + item + "}\"",
+                                            ["date", "time"] +
+                                            list(self.substitute_dict.keys())))
+                               + " can be replaced by the current " +
+                               "/".join(["date", "time"] +
+                                        list(self.substitute_dict.keys())),
+                               font="TkDefaultFont 8")
         label_note.pack(side="left")
         return frame
 
