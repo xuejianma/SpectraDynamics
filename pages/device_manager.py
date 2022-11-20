@@ -10,10 +10,10 @@ class DeviceManager:
     def set_frame(self, parent):
         frame = ttk.Frame(parent)
         frame.pack()
-        Device(frame, "Powermeter", INSTANCES.powermeter)
-        Device(frame, "NDFilter", INSTANCES.ndfilter)
-        Device(frame, "Monochromator", INSTANCES.monochromator)
         Device(frame, "Oscilloscope", INSTANCES.oscilloscope)
+        Device(frame, "Monochromator", INSTANCES.monochromator)
+        Device(frame, "NDFilter", INSTANCES.ndfilter)
+        Device(frame, "Powermeter", INSTANCES.powermeter)
         Device(frame, "Actuator", INSTANCES.actuator)
         return frame
 
