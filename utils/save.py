@@ -7,7 +7,8 @@ from typing import Dict, Optional
 
 
 class Save:
-    def __init__(self, parent, var_directory, var_filename, substitute_dict: Dict[str, StringVar] = {}):
+    def __init__(self, parent, var_directory, var_filename,
+                 substitute_dict: Dict[str, StringVar] = {}):
         self.parent = parent
         self.var_directory = var_directory
         self.var_filename = var_filename
