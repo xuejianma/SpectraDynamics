@@ -86,6 +86,7 @@ class LifetimeTask(Task):
     def start(self):
         self.num = int(float(VARIABLES.var_spinbox_lifetime_num.get()))
         self.page.spinbox_num.config(state="disabled")
+        self.page.save.update_datetime()
         super().start()
 
     def reset(self):
@@ -95,4 +96,4 @@ class LifetimeTask(Task):
     def save_data(self):
         data_to_save = np.stack((self.X, self.data_ch1, self.data_ch2), axis=1)
         self.page.save.data_dict["data"] = data_to_save
-        self.page.save.save()
+        self.page.save.save(update_datetime=False)

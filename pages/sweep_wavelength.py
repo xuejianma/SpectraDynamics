@@ -15,6 +15,7 @@ class SweepWavelength:
         self.read_power_task = ReadPowerTask(self.button_power)
         self.set_wavelength_task = SetWavelengthTask(self.button_set_wavelength)
         self.set_actuator_position_task = SetActuatorPositionTask(self.button_set_actuator_position)
+        Save(frame_1_6, VARIABLES.var_entry_sweep_wavelength_directory, VARIABLES.var_entry_sweep_wavelength_filename)
         SweepWavelengthTask(frame_1_6, self)
 
     def set_frame(self, parent):
