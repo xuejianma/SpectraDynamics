@@ -6,7 +6,6 @@ class Powermeter:
     def __init__(self):
         self.valid = False
         self.error_message = ""
-        self.power = 0
         try:
             self.rm = ResourceManager()
             self.instrument = None
@@ -29,7 +28,6 @@ class Powermeter:
         for _ in range(num):
             power_sum += float(self.instrument.query('Measure:Scalar:POWer?'))
         ret = power_sum / num
-        self.power = ret
         return ret
 
     def get_power_uW(self):
@@ -39,13 +37,12 @@ class PowermeterSimulator:
     def __init__(self):
         self.valid = True
         self.error_message = ""
-        self.power = 1e-5
 
     def set_wavelength(self, wavelength):
         pass
 
     def get_power(self):
-        return self.power
+        return self.get_power_uW() * 1e-6
 
     def get_power_uW(self):
         from random import random

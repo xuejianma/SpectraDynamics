@@ -103,6 +103,7 @@ class Task:
         elif self.status == PAUSING:
             self.button_start["state"] = "normal"
             self.status = PAUSED
+            self.paused()
             if self.i == self.num:
                 self.reset()
                 self.label_remaining.config(text="Done!")
@@ -136,6 +137,12 @@ class Task:
         self.status = PAUSING
         self.button_pause["state"] = "disabled"
         self.button_start.config(text="Resume")
+
+    def paused(self):
+        """
+        Placeholder for user-defined function to be run when the task is paused.
+        """
+        pass
 
     def terminate(self):
         """

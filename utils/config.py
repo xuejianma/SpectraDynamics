@@ -28,6 +28,10 @@ class Variables:
         self.var_spinbox_sweep_start_wavelength = tk.StringVar(value=0)
         self.var_spinbox_sweep_end_wavelength = tk.StringVar(value=0)
         self.var_spinbox_sweep_step_size = tk.StringVar(value=0)
+        self.var_spinbox_sweep_target_power = tk.StringVar(value=0)
+        self.var_spinbox_sweep_lifetime_num = tk.StringVar(value=0)
+        self.var_spinbox_sweep_actuator_explore_range = tk.StringVar(value=1)
+        self.var_spinbox_sweep_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_sweep_wavelength_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_filename = tk.StringVar()
 

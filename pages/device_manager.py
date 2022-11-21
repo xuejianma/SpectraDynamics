@@ -13,8 +13,8 @@ class DeviceManager:
         Device(frame, "Oscilloscope", INSTANCES.oscilloscope)
         Device(frame, "Monochromator", INSTANCES.monochromator)
         Device(frame, "NDFilter", INSTANCES.ndfilter)
-        Device(frame, "Powermeter", INSTANCES.powermeter)
         Device(frame, "Actuator", INSTANCES.actuator)
+        Device(frame, "Powermeter", INSTANCES.powermeter)
         return frame
 
 
