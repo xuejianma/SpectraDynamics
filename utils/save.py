@@ -1,7 +1,8 @@
 import tkinter as tk
+import csv
+import numpy as np
 from tkinter import StringVar, ttk
 from datetime import datetime
-import csv
 from utils.config import LOGGER
 from typing import Dict, Optional
 
@@ -72,8 +73,8 @@ class Save:
                 with open('/'.join([self.var_directory.get(), filename]), "w", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(self.data_dict["header"])
-                    writer.writerows(self.data_dict["data"])
-                LOGGER.log("Saved to {}".format(filename))
+                    writer.writerows(np.asarray(self.data_dict["data"]).T)
+                # LOGGER.log("Saved to {}".format(filename))
             except Exception as e:
                 LOGGER.log("Error saving to {}: ".format(filename) + str(e))
         else:

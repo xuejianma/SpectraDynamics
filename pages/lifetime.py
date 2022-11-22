@@ -1,5 +1,4 @@
 import numpy as np
-import tkinter as tk
 from tkinter import ttk
 from utils.task import Task
 from utils.plot import Plot
@@ -55,16 +54,10 @@ class LifetimeTask(Task):
         super().__init__(parent)
         self.page = page
         self.oscilloscope = INSTANCES.oscilloscope
-        # self.spinbox_num = spinbox_num
         self.X = None
-        # self.save = save
         self.page.save.data_dict["header"] = ["Time(s)", "Ch1(V)", "Ch2(V)"]
         self.data_ch1 = None
         self.data_ch2 = None
-        # self.plot_lifetime_instant_ch1 = plot_lifetime_instant_ch1
-        # self.plot_lifetime_average_ch1 = plot_lifetime_average_ch1
-        # self.plot_lifetime_instant_ch2 = plot_lifetime_instant_ch2
-        # self.plot_lifetime_average_ch2 = plot_lifetime_average_ch2
 
     def task(self):
         self.X, curr_data_ch1, curr_data_ch2 = self.oscilloscope.get_data(
@@ -94,6 +87,7 @@ class LifetimeTask(Task):
         self.page.spinbox_num.config(state="normal")
 
     def save_data(self):
-        data_to_save = np.stack((self.X, self.data_ch1, self.data_ch2), axis=1)
+        # data_to_save = np.stack((self.X, self.data_ch1, self.data_ch2), axis=1)
+        data_to_save = np.asarray([self.X, self.data_ch1, self.data_ch2])
         self.page.save.data_dict["data"] = data_to_save
         self.page.save.save(update_datetime=False)
