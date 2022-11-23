@@ -99,6 +99,9 @@ class Logger:
         if self.status is not None:
             self.status.set(
                 f"{msg} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+    
+    def reset(self):
+        self.initialize_status()
 
 
 LOGGER = Logger()

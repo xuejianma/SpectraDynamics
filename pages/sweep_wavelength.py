@@ -205,7 +205,7 @@ class ReadPowerTask():
         try:
             while self.is_running:
                 power = INSTANCES.powermeter.get_power_uW()
-                VARIABLES.var_entry_curr_power.set(power)
+                VARIABLES.var_entry_curr_power.set(round(power, 4))
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -231,6 +231,8 @@ class SetWavelengthTask():
             self.button_set_wavelength.config(state="disabled")
         try:
             INSTANCES.monochromator.set_wavelength(
+                float(VARIABLES.var_spinbox_target_wavelength.get()))
+            INSTANCES.powermeter.set_wavelength(
                 float(VARIABLES.var_spinbox_target_wavelength.get()))
             VARIABLES.var_entry_curr_wavelength.set(
                 round(INSTANCES.monochromator.get_wavelength(), 4))
@@ -306,10 +308,13 @@ class SweepWavelengthTask(Task):
         self.find_max_power_by_actuator()
         self.find_target_power_by_ndfilter()
         self.measure_lifetime()
-        self.curr_wavelength += float(
-            VARIABLES.var_spinbox_sweep_step_size.get())
+        if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
+            self.curr_wavelength += float(VARIABLES.var_spinbox_sweep_step_size.get())
+        else:
+            self.curr_wavelength -= float(VARIABLES.var_spinbox_sweep_step_size.get())
 
     def find_max_power_by_actuator(self):
+        LOGGER.log(f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding max power by actuator...")
         actuator_explore_range_negative = float(
             VARIABLES.var_spinbox_sweep_actuator_explore_range_negative.get())
         actuator_explore_range_positive = float(
@@ -341,6 +346,7 @@ class SweepWavelengthTask(Task):
         sleep(0.5)
 
     def find_target_power_by_ndfilter(self):
+        LOGGER.log(f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power by NDFilter...")
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
         if curr_power < target_power:
@@ -349,7 +355,8 @@ class SweepWavelengthTask(Task):
             if self.status == RUNNING:
                 self.pause()
         else:
-            while abs(target_power - curr_power) > 0.1:
+            delta = float('inf')
+            while abs(target_power - curr_power) > 0.01 and abs(delta) > 0.01:
                 delta = -0.5 * (target_power - curr_power)
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
@@ -366,6 +373,7 @@ class SweepWavelengthTask(Task):
         data_ch1 = None
         data_ch2 = None
         for i in range(num):
+            LOGGER.log(f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Measuring lifetime, round %d/%d..." % (i + 1, num))
             X, curr_data_ch1, curr_data_ch2 = INSTANCES.oscilloscope.get_data(
                 wait_time)
             data_ch1 = np.asarray(data_ch1) * (i / (i + 1)) + np.asarray(
@@ -419,8 +427,8 @@ class SweepWavelengthTask(Task):
             self.page.turn_on_power_reading()
         self.curr_wavelength = float(
             VARIABLES.var_spinbox_sweep_start_wavelength.get())
-        self.num = int(float(VARIABLES.var_spinbox_sweep_end_wavelength.get()) - float(
-            VARIABLES.var_spinbox_sweep_start_wavelength.get())) / float(VARIABLES.var_spinbox_sweep_step_size.get())
+        self.num = int(abs(float(VARIABLES.var_spinbox_sweep_end_wavelength.get()) - float(
+            VARIABLES.var_spinbox_sweep_start_wavelength.get()))) / float(VARIABLES.var_spinbox_sweep_step_size.get()) + 1
         self.page.save.update_datetime()
         super().start()
 
@@ -433,3 +441,4 @@ class SweepWavelengthTask(Task):
         super().reset()
         for widget in self.on_off_widgets:
             widget.config(state="normal")
+        LOGGER.reset()    

@@ -46,7 +46,7 @@ class Save:
                                "/".join(map(lambda item: "\"{" + item + "}\"",
                                             ["date", "time"] +
                                             list(self.substitute_dict.keys())))
-                               + " can be replaced by the current " +
+                               + " will be replaced by the current " +
                                "/".join(["date", "time"] +
                                         list(self.substitute_dict.keys())),
                                font="TkDefaultFont 8")
