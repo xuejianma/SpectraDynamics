@@ -85,7 +85,7 @@ class SweepWavelength:
             side="top", anchor="w")
         ttk.Label(frame_1_3, text="Target Actuator Position (mm): ").pack(
             side="top", anchor="w")
-        self.spinbox_target_actuator_position = Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1,
+        self.spinbox_target_actuator_position = Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.01,
                                                         textvariable=VARIABLES.var_spinbox_target_actuator_position)
         self.spinbox_target_actuator_position.pack(side="top", anchor="w")
         self.button_set_actuator_position = ttk.Button(
@@ -118,22 +118,28 @@ class SweepWavelength:
         self.spinbox_target_power = Spinbox(frame_1_5, from_=0, to=float("inf"), increment=0.1,
                                             textvariable=VARIABLES.var_spinbox_sweep_target_power)
         self.spinbox_target_power.pack(side="top", anchor="w")
+        self.label_oscilloscope_wait_time = ttk.Label(
+            frame_1_6, text="Oscilloscope wait time (s): ")
+        self.label_oscilloscope_wait_time.pack(side="top", anchor="w")
+        self.spinbox_sweep_oscilloscope_wait_time = Spinbox(frame_1_6, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_sweep_lifetime_wait_time)
+        self.spinbox_sweep_oscilloscope_wait_time.pack(side="top", anchor="w")
         ttk.Label(frame_1_6, text="Number of measurements\nper wavelength").pack(
             side="top", anchor="w")
         self.spinbox_sweep_lifetime_num = Spinbox(frame_1_6, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_spinbox_sweep_lifetime_num)
         self.spinbox_sweep_lifetime_num.pack(side="top", anchor="w")
-        ttk.Label(frame_1_6, text="Actuator explore range\nfor max power (±mm)").pack(
+        ttk.Label(frame_1_6, text="Actuator explore range\nfor max power (∓mm, Δ)").pack(
             side="top", anchor="w")
-        self.spinbox_sweep_actuator_explore_range = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.1,
-                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range)
-        self.spinbox_sweep_actuator_explore_range.pack(side="top", anchor="w")
-        self.label_oscilloscope_wait_time = ttk.Label(
-            frame_1_6, text="Oscilloscope wait time (s): ")
-        self.label_oscilloscope_wait_time.pack(side="top", anchor="w")
-        self.spinbox_sweep_oscilloscope_wait_time = Spinbox(frame_1_6, from_=0, to=float(
-            "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_sweep_lifetime_wait_time)
-        self.spinbox_sweep_oscilloscope_wait_time.pack(side="top", anchor="w")
+        self.spinbox_sweep_actuator_explore_range_negative = Spinbox(frame_1_6, from_=-float("inf"), to=0, increment=0.01, width=5,
+                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_negative)
+        self.spinbox_sweep_actuator_explore_range_negative.pack(side="left")
+        self.spinbox_sweep_actuator_explore_range_positive = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.01, width=5,
+                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_positive)
+        self.spinbox_sweep_actuator_explore_range_positive.pack(side="left")
+        self.spinbox_sweep_actuator_explore_range_step_size = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.01, width=5,
+                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_step_size)
+        self.spinbox_sweep_actuator_explore_range_step_size.pack(side="left")
         self.plot_lifetime_instant_ch1 = Plot(frame_2_1)
         self.plot_lifetime_average_ch1 = Plot(frame_2_2)
         self.plot_lifetime_instant_ch2 = Plot(frame_3_1)
@@ -286,7 +292,9 @@ class SweepWavelengthTask(Task):
                                self.page.button_power,
                                self.page.spinbox_target_power,
                                self.page.spinbox_sweep_lifetime_num,
-                               self.page.spinbox_sweep_actuator_explore_range,
+                               self.page.spinbox_sweep_actuator_explore_range_negative,
+                               self.page.spinbox_sweep_actuator_explore_range_positive,
+                               self.page.spinbox_sweep_actuator_explore_range_step_size,
                                self.page.spinbox_sweep_oscilloscope_wait_time,
                                ]
 
@@ -302,18 +310,21 @@ class SweepWavelengthTask(Task):
             VARIABLES.var_spinbox_sweep_step_size.get())
 
     def find_max_power_by_actuator(self):
-        actuator_explore_range = float(
-            VARIABLES.var_spinbox_sweep_actuator_explore_range.get())
+        actuator_explore_range_negative = float(
+            VARIABLES.var_spinbox_sweep_actuator_explore_range_negative.get())
+        actuator_explore_range_positive = float(
+            VARIABLES.var_spinbox_sweep_actuator_explore_range_positive.get())
+        actuator_explore_range_step_size = float(
+            VARIABLES.var_spinbox_sweep_actuator_explore_range_step_size.get())
         curr_actuator_position = float(
             VARIABLES.var_entry_curr_actuator_position.get())
         max_power = 0
         max_power_actuator_position = 0
         actuator_limit = 12
-        actuator_explore_step = 0.1
-        for actuator_position in np.arange(max(curr_actuator_position - actuator_explore_range, 0),
+        for actuator_position in np.arange(max(curr_actuator_position + actuator_explore_range_negative, 0),
                                            min(curr_actuator_position +
-                                               actuator_explore_range, actuator_limit)
-                                           + actuator_explore_step, actuator_explore_step):
+                                               actuator_explore_range_positive, actuator_limit)
+                                           + actuator_explore_range_step_size, actuator_explore_range_step_size):
             actuator_position = round(actuator_position, 4)
             VARIABLES.var_spinbox_target_actuator_position.set(
                 actuator_position)
@@ -392,9 +403,6 @@ class SweepWavelengthTask(Task):
             f"{self.curr_wavelength}nm_ch2")
         self.page.save.data_dict["data"].append(data_ch2)
         self.page.save.save(update_datetime=False)
-        # data_to_save = np.stack((X, data_ch1, data_ch2), axis=1)
-        # self.page.save.data_dict["data"] = data_to_save
-        # self.page.save.save(update_datetime=False)
 
     def start(self):
         if not INSTANCES.oscilloscope.valid or not INSTANCES.monochromator.valid or not INSTANCES.ndfilter.valid \
