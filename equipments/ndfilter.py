@@ -1,7 +1,7 @@
 try:
     # thorlab_apt package from https://github.com/qpit/thorlabs_apt.
     # Sometimes this will crash the program without giving any error
-    # message even with print(e). Starting thorlab's Kinesis program 
+    # message even with print(e). Starting thorlab's Kinesis program
     # and closing it can solve the problem.
     import utils.thorlabs_apt as apt
 except:
