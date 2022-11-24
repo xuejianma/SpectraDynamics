@@ -401,6 +401,7 @@ class SweepWavelengthTask(Task):
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding background power...")
         curr_actuator_position = float(
             VARIABLES.var_entry_curr_actuator_position.get())
+        # move actuator to a misaligned position to find background power
         if curr_actuator_position >= 2:
             VARIABLES.var_spinbox_target_actuator_position.set(
                 round(curr_actuator_position - 1.5, 4))
