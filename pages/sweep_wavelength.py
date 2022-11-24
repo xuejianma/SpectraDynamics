@@ -2,7 +2,7 @@ from tkinter import ttk
 from utils.config import INSTANCES, VARIABLES, LOGGER
 from utils.spinbox import Spinbox
 from utils.plot import Plot
-from utils.task import Task, RUNNING
+from utils.task import Task, RUNNING, PAUSED, PAUSING, TERMINATING
 from utils.save import Save
 from threading import Thread
 from time import sleep
@@ -18,9 +18,10 @@ class SweepWavelength:
             self.button_set_wavelength)
         self.set_actuator_position_task = SetActuatorPositionTask(
             self.button_set_actuator_position)
+        self.home_actuator_task = HomeActuatorTask(self.button_home_actuator)
         self.save = Save(frame_1_7, VARIABLES.var_entry_sweep_wavelength_directory,
-             VARIABLES.var_entry_sweep_wavelength_filename,
-             substitute_dict={})
+                         VARIABLES.var_entry_sweep_wavelength_filename,
+                         substitute_dict={})
         SweepWavelengthTask(frame_1_7, self)
 
     def set_frame(self, parent):
@@ -59,7 +60,7 @@ class SweepWavelength:
             side="top", anchor="w")
         ttk.Label(frame_1_1, text="Target Wavelength (nm):").pack(
             side="top", anchor="w")
-        self.spinbox_target_wavelength = Spinbox(frame_1_1, from_=0, to=float("inf"), increment=0.1,
+        self.spinbox_target_wavelength = Spinbox(frame_1_1, from_=0, to=float("inf"),
                                                  textvariable=VARIABLES.var_spinbox_target_wavelength)
         self.spinbox_target_wavelength.pack(side="top", anchor="w")
         self.button_set_wavelength = ttk.Button(
@@ -91,6 +92,9 @@ class SweepWavelength:
         self.button_set_actuator_position = ttk.Button(
             frame_1_3, text="Set Position", command=self.on_set_actuator_position)
         self.button_set_actuator_position.pack(side="top", anchor="w")
+        self.button_home_actuator = ttk.Button(
+            frame_1_3, text="Home", command=self.on_home_actuator)
+        self.button_home_actuator.pack(side="top", anchor="w")
         ttk.Label(frame_1_4, text="Sweep Start Wavelength (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_start_wavelength = Spinbox(frame_1_4, from_=0, to=float(
@@ -104,15 +108,23 @@ class SweepWavelength:
         ttk.Label(frame_1_4, text="Sweep Step Size (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_step_size = Spinbox(frame_1_4, from_=0, to=float(
-            "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_sweep_step_size)
+            "inf"), textvariable=VARIABLES.var_spinbox_sweep_step_size)
         self.spinbox_sweep_step_size.pack(side="top", anchor="w")
-        ttk.Label(frame_1_5, text="Current Power (uW): ").pack(
+        ttk.Label(frame_1_5, text="Current Power (rel. uW): ").pack(
             side="top", anchor="w")
         ttk.Entry(frame_1_5, state="readonly", textvariable=VARIABLES.var_entry_curr_power).pack(
             side="top", anchor="w")
         self.button_power = ttk.Button(
             frame_1_5, text="Turn ON", command=self.toggle_power_reading)
         self.button_power.pack(side="top", anchor="w")
+        self.button_set_background_power = ttk.Button(
+            frame_1_5, text="Set As Background Power", command=self.set_background_power)
+        self.button_set_background_power.pack(side="top", anchor="w")
+        ttk.Label(frame_1_5, text="Background Power (uW):").pack(
+            side="top", anchor="w")
+        self.spinbox_background_power = Spinbox(frame_1_5, from_=0, to=float(
+            "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_background_power)
+        self.spinbox_background_power.pack(side="top", anchor="w")
         ttk.Label(frame_1_5, text="Target Power (uW): ").pack(
             side="top", anchor="w")
         self.spinbox_target_power = Spinbox(frame_1_5, from_=0, to=float("inf"), increment=0.1,
@@ -132,13 +144,13 @@ class SweepWavelength:
         ttk.Label(frame_1_6, text="Actuator explore range\nfor max power (∓mm, Δ)").pack(
             side="top", anchor="w")
         self.spinbox_sweep_actuator_explore_range_negative = Spinbox(frame_1_6, from_=-float("inf"), to=0, increment=0.01, width=5,
-                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_negative)
+                                                                     textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_negative)
         self.spinbox_sweep_actuator_explore_range_negative.pack(side="left")
         self.spinbox_sweep_actuator_explore_range_positive = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.01, width=5,
-                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_positive)
+                                                                     textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_positive)
         self.spinbox_sweep_actuator_explore_range_positive.pack(side="left")
         self.spinbox_sweep_actuator_explore_range_step_size = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.01, width=5,
-                                                            textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_step_size)
+                                                                      textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_step_size)
         self.spinbox_sweep_actuator_explore_range_step_size.pack(side="left")
         self.plot_lifetime_instant_ch1 = Plot(frame_2_1)
         self.plot_lifetime_average_ch1 = Plot(frame_2_2)
@@ -169,6 +181,14 @@ class SweepWavelength:
 
     def on_set_actuator_position(self):
         self.set_actuator_position_task.start()
+
+    def on_home_actuator(self):
+        self.home_actuator_task.start()
+
+    def set_background_power(self):
+        VARIABLES.var_spinbox_background_power.set(
+            round(float(VARIABLES.var_entry_curr_power.get()) +
+                  float(VARIABLES.var_spinbox_background_power.get()), 4))
 
 
 class SetAngleTask():
@@ -205,7 +225,10 @@ class ReadPowerTask():
         try:
             while self.is_running:
                 power = INSTANCES.powermeter.get_power_uW()
-                VARIABLES.var_entry_curr_power.set(round(power, 4))
+                background_power = float(
+                    VARIABLES.var_spinbox_background_power.get())
+                VARIABLES.var_entry_curr_power.set(
+                    round(power - background_power, 4))
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -273,6 +296,30 @@ class SetActuatorPositionTask():
         thread.start()
 
 
+class HomeActuatorTask():
+    def __init__(self, button_home_actuator) -> None:
+        self.button_home_actuator = button_home_actuator
+        self.external_button_control = False
+
+    def task_loop(self):
+        if not self.external_button_control:
+            self.button_home_actuator.config(state="disabled")
+        try:
+            INSTANCES.actuator.home()
+            VARIABLES.var_entry_curr_actuator_position.set(
+                round(INSTANCES.actuator.get_position(), 4))
+        except Exception as e:
+            LOGGER.log(e)
+            raise e
+        finally:
+            if not self.external_button_control:
+                self.button_home_actuator.config(state="normal")
+
+    def start(self):
+        thread = Thread(target=self.task_loop)
+        thread.start()
+
+
 class SweepWavelengthTask(Task):
     def __init__(self, parent, page: SweepWavelength) -> None:
         '''
@@ -288,6 +335,7 @@ class SweepWavelengthTask(Task):
                                self.page.button_set_angle,
                                self.page.spinbox_target_actuator_position,
                                self.page.button_set_actuator_position,
+                               self.page.button_home_actuator,
                                self.page.spinbox_sweep_start_wavelength,
                                self.page.spinbox_sweep_end_wavelength,
                                self.page.spinbox_sweep_step_size,
@@ -298,23 +346,56 @@ class SweepWavelengthTask(Task):
                                self.page.spinbox_sweep_actuator_explore_range_positive,
                                self.page.spinbox_sweep_actuator_explore_range_step_size,
                                self.page.spinbox_sweep_oscilloscope_wait_time,
+                               self.page.spinbox_background_power,
                                ]
+        self.external_button_control_list = [
+            self.page.set_wavelength_task,
+            self.page.set_angle_task,
+            self.page.set_actuator_position_task,
+            self.page.home_actuator_task,
+        ]
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
         self.page.set_wavelength_task.task_loop()
         VARIABLES.var_spinbox_target_angle.set(0)
         self.page.set_angle_task.task_loop()
+        self.find_backgrond_power()
         self.find_max_power_by_actuator()
         self.find_target_power_by_ndfilter()
         self.measure_lifetime()
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
-            self.curr_wavelength += float(VARIABLES.var_spinbox_sweep_step_size.get())
+            self.curr_wavelength += float(
+                VARIABLES.var_spinbox_sweep_step_size.get())
         else:
-            self.curr_wavelength -= float(VARIABLES.var_spinbox_sweep_step_size.get())
+            self.curr_wavelength -= float(
+                VARIABLES.var_spinbox_sweep_step_size.get())
+
+    def find_backgrond_power(self):
+        if self.check_stopping():
+            return
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding background power...")
+        curr_actuator_position = float(
+            VARIABLES.var_entry_curr_actuator_position.get())
+        if curr_actuator_position >= 2:
+            VARIABLES.var_spinbox_target_actuator_position.set(
+                round(curr_actuator_position - 1.5, 4))
+        else:
+            VARIABLES.var_spinbox_target_actuator_position.set(
+                round(curr_actuator_position + 1.5, 4))
+        self.page.set_actuator_position_task.task_loop()
+        sleep(0.5)  # wait for var_entry_curr_power to update before getting power
+        self.page.set_background_power()
+        VARIABLES.var_spinbox_target_actuator_position.set(
+            round(curr_actuator_position, 4))
+        self.page.set_actuator_position_task.task_loop()
 
     def find_max_power_by_actuator(self):
-        LOGGER.log(f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding max power by actuator...")
+        if self.check_stopping():
+            return
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding max power by actuator...")
         actuator_explore_range_negative = float(
             VARIABLES.var_spinbox_sweep_actuator_explore_range_negative.get())
         actuator_explore_range_positive = float(
@@ -330,6 +411,8 @@ class SweepWavelengthTask(Task):
                                            min(curr_actuator_position +
                                                actuator_explore_range_positive, actuator_limit)
                                            + actuator_explore_range_step_size, actuator_explore_range_step_size):
+            if self.check_stopping():
+                return
             actuator_position = round(actuator_position, 4)
             VARIABLES.var_spinbox_target_actuator_position.set(
                 actuator_position)
@@ -346,7 +429,10 @@ class SweepWavelengthTask(Task):
         sleep(0.5)
 
     def find_target_power_by_ndfilter(self):
-        LOGGER.log(f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power by NDFilter...")
+        if self.check_stopping():
+            return
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power by NDFilter...")
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
         if curr_power < target_power:
@@ -356,7 +442,9 @@ class SweepWavelengthTask(Task):
                 self.pause()
         else:
             delta = float('inf')
-            while abs(target_power - curr_power) > 0.01 and abs(delta) > 0.01:
+            while abs(target_power - curr_power) > 0.01 and abs(delta) > 0.005:
+                if self.check_stopping():
+                    return
                 delta = -0.5 * (target_power - curr_power)
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
@@ -367,13 +455,18 @@ class SweepWavelengthTask(Task):
                 curr_power = float(VARIABLES.var_entry_curr_power.get())
 
     def measure_lifetime(self):
+        if self.check_stopping():
+            return
         num = int(VARIABLES.var_spinbox_sweep_lifetime_num.get())
         wait_time = float(VARIABLES.var_spinbox_sweep_lifetime_wait_time.get())
         X = None
         data_ch1 = None
         data_ch2 = None
         for i in range(num):
-            LOGGER.log(f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Measuring lifetime, round %d/%d..." % (i + 1, num))
+            if self.check_stopping():
+                return
+            LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Measuring lifetime, round %d/%d..." % (i + 1, num))
             X, curr_data_ch1, curr_data_ch2 = INSTANCES.oscilloscope.get_data(
                 wait_time)
             data_ch1 = np.asarray(data_ch1) * (i / (i + 1)) + np.asarray(
@@ -384,6 +477,7 @@ class SweepWavelengthTask(Task):
             # Directly plotting can only update GUI after the loop is finished,
             # though not freezing the GUI since the loop is already running in a
             # different thread other than the main thread.
+
             def plot():
                 self.page.plot_lifetime_instant_ch1.plot(
                     X, curr_data_ch1, "-", c="black", linewidth=0.5)
@@ -401,6 +495,8 @@ class SweepWavelengthTask(Task):
         # TODO: Make pause really work in subtasks
 
     def save_data(self, X, data_ch1, data_ch2):
+        if self.check_stopping():
+            return
         if not self.page.save.data_dict["header"]:
             self.page.save.data_dict["header"].append("time(s)")
             self.page.save.data_dict["data"].append(X)
@@ -420,25 +516,37 @@ class SweepWavelengthTask(Task):
             return
         for widget in self.on_off_widgets:
             widget.config(state="disabled")
-        self.page.set_wavelength_task.external_button_control = True
-        self.page.set_angle_task.external_button_control = True
-        self.page.set_actuator_position_task.external_button_control = True
+        for external_button_control in self.external_button_control_list:
+            external_button_control.external_button_control = True
         if not self.page.read_power_task.is_running:
             self.page.turn_on_power_reading()
-        self.curr_wavelength = float(
-            VARIABLES.var_spinbox_sweep_start_wavelength.get())
         self.num = int(abs(float(VARIABLES.var_spinbox_sweep_end_wavelength.get()) - float(
             VARIABLES.var_spinbox_sweep_start_wavelength.get()))) / float(VARIABLES.var_spinbox_sweep_step_size.get()) + 1
-        self.page.save.update_datetime()
+        if self.status != PAUSED:
+            self.curr_wavelength = float(
+                VARIABLES.var_spinbox_sweep_start_wavelength.get())
+            self.page.save.update_datetime()
         super().start()
 
     def paused(self):
         super().paused()
         for widget in self.on_off_widgets:
             widget.config(state="normal")
+        for external_button_control in self.external_button_control_list:
+            external_button_control.external_button_control = False
+
+    def check_stopping(self):
+        if self.status == PAUSING or self.status == TERMINATING:
+            return True
+        else:
+            return False
 
     def reset(self):
         super().reset()
+        VARIABLES.var_spinbox_target_angle.set(0)
+        self.page.set_angle_task.task_loop()
         for widget in self.on_off_widgets:
             widget.config(state="normal")
-        LOGGER.reset()    
+        for external_button_control in self.external_button_control_list:
+            external_button_control.external_button_control = False
+        LOGGER.reset()

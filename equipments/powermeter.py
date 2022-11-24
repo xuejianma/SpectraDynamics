@@ -24,7 +24,7 @@ class Powermeter:
 
     def get_power(self):
         power_sum = 0
-        num = 10
+        num = 100
         for _ in range(num):
             power_sum += float(self.instrument.query('Measure:Scalar:POWer?'))
         ret = power_sum / num
@@ -52,4 +52,4 @@ class PowermeterSimulator:
         actuator_position = float(VARIABLES.var_entry_curr_actuator_position.get())
         angle = float(VARIABLES.var_entry_curr_angle.get())
         sleep(0.2)
-        return 20 * np.exp(-0.25*abs(wavelength-actuator_position*40-400))*np.exp(-0.05*abs(angle)) + 0.1 * (random() - 0.5)
+        return 20 * np.exp(-0.25*abs(wavelength-actuator_position*40-400))*np.exp(-0.05*abs(angle)) + 0.01 * (random() - 0.5) + 0.1

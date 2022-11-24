@@ -27,6 +27,11 @@ class Actuator:
         self.motor.move_to(position)
         while self.motor.is_in_motion:
             sleep(0.1)
+    
+    def home(self):
+        self.motor.move_home()
+        while self.motor.is_in_motion:
+            sleep(0.1)
 
 
 class ActuatorSimulator:
@@ -41,3 +46,7 @@ class ActuatorSimulator:
     def set_position(self, position):
         sleep(1)
         self.position = position
+    
+    def home(self):
+        sleep(1)
+        self.position = 0
