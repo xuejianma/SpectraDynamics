@@ -37,6 +37,7 @@ class Variables:
         self.var_spinbox_sweep_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_sweep_wavelength_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_filename = tk.StringVar()
+        self.var_logger_status = tk.StringVar()
 
 
 class Instances:
@@ -94,18 +95,17 @@ class Default:
 
 class Logger:
     def initialize_status(self):
-        self.status = tk.StringVar(value="Ready.")
+        VARIABLES.var_logger_status.set("Ready.")
 
     def log(self, msg):
-        if self.status is not None:
-            self.status.set(
-                f"{msg} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
-    
+        VARIABLES.var_logger_status.set(
+            f"{msg} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+
     def reset(self):
         self.initialize_status()
 
 
-LOGGER = Logger()
 VARIABLES = Variables()
+LOGGER = Logger()
 DEFAULT = Default()
 INSTANCES = Instances()

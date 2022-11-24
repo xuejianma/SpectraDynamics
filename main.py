@@ -10,8 +10,8 @@ from utils.config import LOGGER, VARIABLES, DEFAULT, INSTANCES
 
 class App:
     def __init__(self, root):
-        LOGGER.initialize_status()
         VARIABLES.initialize_vars()
+        LOGGER.initialize_status()
         DEFAULT.load_default()
         INSTANCES.initialize_instances()
         self.root = root
@@ -29,7 +29,7 @@ class App:
         tabControl.add(tab3, text='Device Manager')
         tabControl.add(tab4, text='Test')
         tabControl.pack(expand=1, fill="both")
-        self.status_bar = StatusBar(self.root, LOGGER.status)
+        self.status_bar = StatusBar(self.root, VARIABLES.var_logger_status)
         self.status_bar.pack(side="bottom", fill="x")
 
     def on_closing(self):
