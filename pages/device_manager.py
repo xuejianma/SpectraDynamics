@@ -12,8 +12,8 @@ class DeviceManager:
         frame.pack()
         Device(frame, "Oscilloscope", INSTANCES.oscilloscope)
         Device(frame, "Monochromator", INSTANCES.monochromator)
-        Device(frame, "NDFilter", INSTANCES.ndfilter)
         Device(frame, "Actuator", INSTANCES.actuator)
+        Device(frame, "NDFilter", INSTANCES.ndfilter)
         Device(frame, "Powermeter", INSTANCES.powermeter)
         return frame
 
@@ -31,8 +31,8 @@ class Device(ttk.Frame):
         ttk.Button(self, text="Reconnect", command=self.reconnect).pack(
             side="left", padx=10)
         self.label_error = ttk.Label(
-            self, text=f"{self.instance.error_message} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"\
-                if self.instance.error_message else "")
+            self, text=f"{self.instance.error_message} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+            if self.instance.error_message else "")
         self.label_error.pack(side="left", padx=10)
 
     def reconnect(self):
@@ -40,5 +40,5 @@ class Device(ttk.Frame):
         self.label_status.config(
             text="SUCCESS" if self.instance.valid else "FAIL")
         self.label_error.config(
-            text=f"{self.instance.error_message} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"\
-                if self.instance.error_message else "")
+            text=f"{self.instance.error_message} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]"
+            if self.instance.error_message else "")

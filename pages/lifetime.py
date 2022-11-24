@@ -34,16 +34,25 @@ class Lifetime:
         frame_3_2.pack(side="left", padx=10)
         frame_1_1_1 = ttk.Frame(frame_1_1)
         frame_1_1_1.pack(side="top", anchor="w")
-        ttk.Label(frame_1_1_1, text="Number of measurements: ").grid(row=0, column=0, pady=4)
-        self.spinbox_num = Spinbox(frame_1_1_1, from_=1, to=float("inf"), textvariable=VARIABLES.var_spinbox_lifetime_num)
+        ttk.Label(frame_1_1_1, text="Number of measurements: ").grid(
+            row=0, column=0, pady=4)
+        self.spinbox_num = Spinbox(frame_1_1_1, from_=1, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_lifetime_num)
         self.spinbox_num.grid(row=0, column=1)
-        ttk.Label(frame_1_1_1, text="Wait time (s): ").grid(row=1, column=0, sticky="w", pady=4)
-        Spinbox(frame_1_1_1, from_=0, to=float("inf"), textvariable=VARIABLES.var_spinbox_lifetime_wait_time).grid(row=1, column=1)
+        ttk.Label(frame_1_1_1, text="Wait time (s): ").grid(
+            row=1, column=0, sticky="w", pady=4)
+        Spinbox(frame_1_1_1, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_lifetime_wait_time).grid(row=1, column=1)
+        ttk.Label(frame_2_1, text="Ch1 Instant (V-s)").pack(side="top")
         self.plot_lifetime_instant_ch1 = Plot(frame_2_1)
+        ttk.Label(frame_2_2, text="Ch1 Average (V-s)").pack(side="top")
         self.plot_lifetime_average_ch1 = Plot(frame_2_2)
+        ttk.Label(frame_3_1, text="Ch2 Instant (V-s)").pack(side="top")
         self.plot_lifetime_instant_ch2 = Plot(frame_3_1)
+        ttk.Label(frame_3_2, text="Ch2 Average (V-s)").pack(side="top")
         self.plot_lifetime_average_ch2 = Plot(frame_3_2)
-        self.save = Save(frame_1_1, VARIABLES.var_entry_lifetime_directory, VARIABLES.var_entry_lifetime_filename)
+        self.save = Save(frame_1_1, VARIABLES.var_entry_lifetime_directory,
+                         VARIABLES.var_entry_lifetime_filename)
         LifetimeTask(frame_1_2, self)
 
         return frame
@@ -87,7 +96,6 @@ class LifetimeTask(Task):
         self.page.spinbox_num.config(state="normal")
 
     def save_data(self):
-        # data_to_save = np.stack((self.X, self.data_ch1, self.data_ch2), axis=1)
         data_to_save = np.asarray([self.X, self.data_ch1, self.data_ch2])
         self.page.save.data_dict["data"] = data_to_save
         self.page.save.save(update_datetime=False)

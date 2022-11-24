@@ -1,6 +1,7 @@
 from pyvisa import ResourceManager
 from time import sleep
 
+
 class Powermeter:
 
     def __init__(self):
@@ -33,6 +34,7 @@ class Powermeter:
     def get_power_uW(self):
         return self.get_power() * 1e6
 
+
 class PowermeterSimulator:
     def __init__(self):
         self.valid = True
@@ -49,7 +51,8 @@ class PowermeterSimulator:
         from utils.config import VARIABLES
         import numpy as np
         wavelength = float(VARIABLES.var_entry_curr_wavelength.get())
-        actuator_position = float(VARIABLES.var_entry_curr_actuator_position.get())
+        actuator_position = float(
+            VARIABLES.var_entry_curr_actuator_position.get())
         angle = float(VARIABLES.var_entry_curr_angle.get())
         sleep(0.2)
         return 20 * np.exp(-0.25*abs(wavelength-actuator_position*40-400))*np.exp(-0.05*abs(angle)) + 0.01 * (random() - 0.5) + 0.1

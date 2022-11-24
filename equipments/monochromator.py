@@ -17,7 +17,8 @@ class Monochromator:
             self.valid = True
         except Exception as e:
             self.valid = False
-            self.error_message = str(e) + "[Time out when trying to connect to SciSpec 9.3.0.0 window]"
+            self.error_message = str(
+                e) + "[Time out when trying to connect to SciSpec 9.3.0.0 window]"
 
     def get_wavelength(self):
         return float(self.edit_box.window_text())

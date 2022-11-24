@@ -20,20 +20,23 @@ class Variables:
         self.var_spinbox_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_curr_wavelength = tk.StringVar(value=0)
         self.var_spinbox_target_wavelength = tk.StringVar(value=0)
+        self.var_entry_curr_actuator_position = tk.StringVar(value=0)
+        self.var_spinbox_target_actuator_position = tk.StringVar(value=0)
         self.var_entry_curr_angle = tk.StringVar(value=0)
         self.var_spinbox_target_angle = tk.StringVar(value=0)
         self.var_entry_curr_power = tk.StringVar(value=0)
         self.var_spinbox_background_power = tk.StringVar(value=0)
-        self.var_entry_curr_actuator_position = tk.StringVar(value=0)
-        self.var_spinbox_target_actuator_position = tk.StringVar(value=0)
         self.var_spinbox_sweep_start_wavelength = tk.StringVar(value=0)
         self.var_spinbox_sweep_end_wavelength = tk.StringVar(value=0)
         self.var_spinbox_sweep_step_size = tk.StringVar(value=0)
         self.var_spinbox_sweep_target_power = tk.StringVar(value=0)
         self.var_spinbox_sweep_lifetime_num = tk.StringVar(value=0)
-        self.var_spinbox_sweep_actuator_explore_range_negative = tk.StringVar(value=-0.05)
-        self.var_spinbox_sweep_actuator_explore_range_positive = tk.StringVar(value=0.05)
-        self.var_spinbox_sweep_actuator_explore_range_step_size = tk.StringVar(value=0.01)
+        self.var_spinbox_sweep_actuator_explore_range_negative = tk.StringVar(
+            value=-0.05)
+        self.var_spinbox_sweep_actuator_explore_range_positive = tk.StringVar(
+            value=0.05)
+        self.var_spinbox_sweep_actuator_explore_range_step_size = tk.StringVar(
+            value=0.01)
         self.var_spinbox_sweep_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_sweep_wavelength_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_filename = tk.StringVar()
@@ -51,13 +54,17 @@ class Instances:
         self.powermeter = PowermeterSimulator()
         self.monochromator = MonochromatorSimulator()
         self.actuator = ActuatorSimulator()
-        self.initialize_readings() # Initialize readings from equipments after instances are created.
+        # Initialize readings from equipments after instances are created.
+        self.initialize_readings()
 
     def initialize_readings(self):
         try:
-            VARIABLES.var_entry_curr_angle.set(round(self.ndfilter.get_angle(), 4))
-            VARIABLES.var_entry_curr_wavelength.set(round(self.monochromator.get_wavelength(), 4))
-            VARIABLES.var_entry_curr_actuator_position.set(round(self.actuator.get_position(), 4))
+            VARIABLES.var_entry_curr_angle.set(
+                round(self.ndfilter.get_angle(), 4))
+            VARIABLES.var_entry_curr_wavelength.set(
+                round(self.monochromator.get_wavelength(), 4))
+            VARIABLES.var_entry_curr_actuator_position.set(
+                round(self.actuator.get_position(), 4))
         except:
             pass
 

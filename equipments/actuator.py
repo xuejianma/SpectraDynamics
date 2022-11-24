@@ -1,7 +1,7 @@
 try:
     # thorlab_apt package from https://github.com/qpit/thorlabs_apt.
     # Sometimes this will crash the program without giving any error
-    # message even with print(e). Starting thorlab's Kinesis program 
+    # message even with print(e). Starting thorlab's Kinesis program
     # and closing it can solve the problem.
     import utils.thorlabs_apt as apt
 except:
@@ -27,7 +27,7 @@ class Actuator:
         self.motor.move_to(position)
         while self.motor.is_in_motion:
             sleep(0.1)
-    
+
     def home(self):
         self.motor.move_home()
         while self.motor.is_in_motion:
@@ -46,7 +46,7 @@ class ActuatorSimulator:
     def set_position(self, position):
         sleep(1)
         self.position = position
-    
+
     def home(self):
         sleep(1)
         self.position = 0

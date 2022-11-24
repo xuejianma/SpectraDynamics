@@ -4,6 +4,7 @@ Customized spinbox widget which supports validation for integers.
 
 from tkinter import ttk
 
+
 class Spinbox(ttk.Spinbox):
     def __init__(self, master=None, from_=None, to=None, **kw):
         ttk.Spinbox.__init__(self, master, from_=from_, to=to, **kw)
