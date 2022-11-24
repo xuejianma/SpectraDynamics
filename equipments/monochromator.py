@@ -1,3 +1,6 @@
+import sys
+# Solve askdirectory freezing problem after converting to exe
+sys.coinit_flags = 2  # COINIT_APARTMENTTHREADED
 from time import sleep
 import warnings
 # Ignore UserWarning from pywinauto

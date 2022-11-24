@@ -1,10 +1,10 @@
-import tkinter as tk
 import csv
 import numpy as np
 from tkinter import StringVar, ttk
 from datetime import datetime
 from utils.config import LOGGER
-from typing import Dict, Optional
+from typing import Dict
+from tkinter.filedialog import askdirectory
 
 
 class Save:
@@ -54,7 +54,7 @@ class Save:
         return frame
 
     def select_directory(self):
-        directory = tk.filedialog.askdirectory()
+        directory = askdirectory()
         if directory:
             self.var_directory.set(directory)
 
@@ -74,7 +74,6 @@ class Save:
                     writer = csv.writer(f)
                     writer.writerow(self.data_dict["header"])
                     writer.writerows(np.asarray(self.data_dict["data"]).T)
-                # LOGGER.log("Saved to {}".format(filename))
             except Exception as e:
                 LOGGER.log("Error saving to {}: ".format(filename) + str(e))
         else:
