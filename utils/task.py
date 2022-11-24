@@ -80,7 +80,9 @@ class Task:
             self.button_start["state"] = "disabled"
             self.button_pause["state"] = "normal"
             self.button_terminate["state"] = "normal"
-            Thread(target=self.task_loop).start()
+            thread = Thread(target=self.task_loop)
+            thread.setDaemon(True)
+            thread.start()
 
     def task_loop(self):
         """

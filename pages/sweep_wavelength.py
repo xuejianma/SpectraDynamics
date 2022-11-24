@@ -220,6 +220,7 @@ class SetAngleTask():
     def start(self):
         self.is_running = True
         thread = Thread(target=self.task_loop)
+        thread.setDaemon(True)
         thread.start()
 
 
@@ -230,12 +231,26 @@ class ReadPowerTask():
 
     def task_loop(self):
         try:
-            while self.is_running:
-                power = INSTANCES.powermeter.get_power_uW()
-                background_power = float(
-                    VARIABLES.var_spinbox_background_power.get())
-                VARIABLES.var_entry_curr_power.set(
-                    round(power - background_power, 4))
+            count = 0
+            max_try = 10
+            e = None
+            # sometimes the powermeter will have VisaIOError and rerunning the command will fix it.
+            while count < max_try:
+                try:
+                    while self.is_running:
+                        power = INSTANCES.powermeter.get_power_uW()
+                        background_power = float(
+                            VARIABLES.var_spinbox_background_power.get())
+                        VARIABLES.var_entry_curr_power.set(
+                            round(power - background_power, 4))
+                    break
+                except Exception as e:
+                    LOGGER.log(e)
+                    count += 1
+                    e = e
+                    sleep(0.1)
+            if count == max_try:
+                raise e
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -249,6 +264,7 @@ class ReadPowerTask():
     def start(self):
         self.is_running = True
         thread = Thread(target=self.task_loop)
+        thread.setDaemon(True)
         thread.start()
 
     def terminate(self):
@@ -282,6 +298,7 @@ class SetWavelengthTask():
     def start(self):
         self.is_running = True
         thread = Thread(target=self.task_loop)
+        thread.setDaemon(True)
         thread.start()
 
 
@@ -310,6 +327,7 @@ class SetActuatorPositionTask():
     def start(self):
         self.is_running = True
         thread = Thread(target=self.task_loop)
+        thread.setDaemon(True)
         thread.start()
 
 
@@ -337,6 +355,7 @@ class HomeActuatorTask():
     def start(self):
         self.is_running = True
         thread = Thread(target=self.task_loop)
+        thread.setDaemon(True)
         thread.start()
 
 
@@ -409,7 +428,8 @@ class SweepWavelengthTask(Task):
             VARIABLES.var_spinbox_target_actuator_position.set(
                 round(curr_actuator_position + 1.5, 4))
         self.page.set_actuator_position_task.task_loop()
-        sleep(0.5)  # wait for var_entry_curr_power to update before getting power
+        # wait for var_entry_curr_power to update before getting power
+        sleep(INSTANCES.powermeter.max_period + 0.2)
         self.page.set_background_power()
         VARIABLES.var_spinbox_target_actuator_position.set(
             round(curr_actuator_position, 4))
@@ -441,7 +461,8 @@ class SweepWavelengthTask(Task):
             VARIABLES.var_spinbox_target_actuator_position.set(
                 actuator_position)
             self.page.set_actuator_position_task.task_loop()
-            sleep(0.5)  # wait for var_entry_curr_power to update before getting power
+            # wait for var_entry_curr_power to update before getting power
+            sleep(INSTANCES.powermeter.max_period + 0.2)
             power = float(VARIABLES.var_entry_curr_power.get())
             if power > max_power:
                 max_power = power
@@ -450,7 +471,7 @@ class SweepWavelengthTask(Task):
             max_power_actuator_position)
         self.page.set_actuator_position_task.task_loop()
         # wait for var_entry_curr_power to update before getting power in find_target_power_by_ndfilter
-        sleep(0.5)
+        sleep(INSTANCES.powermeter.max_period + 0.2)
 
     def find_target_power_by_ndfilter(self):
         if self.check_stopping():
@@ -466,16 +487,17 @@ class SweepWavelengthTask(Task):
                 self.pause()
         else:
             delta = float('inf')
-            while abs(target_power - curr_power) > 0.01 and abs(delta) > 0.005:
+            while abs(target_power - curr_power) > 0.005 * target_power and abs(delta) > 0.005:
                 if self.check_stopping():
                     return
-                delta = -0.5 * (target_power - curr_power)
+                delta = -0.5 * (target_power - curr_power) / curr_power * 10
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
                 VARIABLES.var_spinbox_target_angle.set(
                     round(curr_ndfilter_position + delta, 4))
                 self.page.set_angle_task.task_loop()
-                sleep(0.5)  # wait for var_entry_curr_power to update
+                # wait for var_entry_curr_power to update
+                sleep(INSTANCES.powermeter.max_period + 0.2)
                 curr_power = float(VARIABLES.var_entry_curr_power.get())
 
     def measure_lifetime(self):
@@ -514,6 +536,7 @@ class SweepWavelengthTask(Task):
                 self.page.plot_lifetime_average_ch2.plot(
                     X, data_ch2, "-", c="black", linewidth=0.5)
             plot_thread = Thread(target=plot)
+            plot_thread.setDaemon(True)
             plot_thread.start()
         self.save_data(X, data_ch1, data_ch2)
 

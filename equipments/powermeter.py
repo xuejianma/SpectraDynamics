@@ -1,5 +1,5 @@
 from pyvisa import ResourceManager
-from time import sleep
+from time import sleep, time
 
 
 class Powermeter:
@@ -7,6 +7,8 @@ class Powermeter:
     def __init__(self):
         self.valid = False
         self.error_message = ""
+        self.max_period = 0.4
+        self.num = 50
         try:
             self.rm = ResourceManager()
             self.instrument = None
@@ -25,10 +27,13 @@ class Powermeter:
 
     def get_power(self):
         power_sum = 0
-        num = 100
-        for _ in range(num):
+        t1 = time()
+        for _ in range(self.num):
             power_sum += float(self.instrument.query('Measure:Scalar:POWer?'))
-        ret = power_sum / num
+            sleep(1e-6)
+        ret = power_sum / self.num
+        t2 = time()
+        self.num = int(self.num * (self.max_period / (t2 - t1)))
         return ret
 
     def get_power_uW(self):

@@ -1,8 +1,11 @@
 try:
     # thorlab_apt package from https://github.com/qpit/thorlabs_apt.
-    # Sometimes this will crash the program without giving any error
+    # Sometimes this crashed the program without giving any error
     # message even with print(e). Starting thorlab's Kinesis program
-    # and closing it can solve the problem.
+    # and closing it can solve the problem. The problem came from the
+    # fact that not all threads were closed when the program is closed.
+    # The problem has been mostly solved with daemon=True for all worker
+    # threads.
     import utils.thorlabs_apt as apt
 except:
     pass
