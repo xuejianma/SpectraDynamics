@@ -10,8 +10,8 @@ from utils.config import LOGGER, VARIABLES, DEFAULT, INSTANCES
 class App:
     def __init__(self, root):
         VARIABLES.initialize_vars()
-        LOGGER.initialize_status()
         DEFAULT.load_default()
+        LOGGER.initialize_status()
         INSTANCES.initialize_instances()
         self.root = root
         self.root.title("SpectraDynamics")

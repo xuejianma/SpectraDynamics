@@ -18,6 +18,9 @@ class Powermeter:
                     self.instrument = self.rm.open_resource(item)
                     break
             self.valid = True
+            if self.instrument is None:
+                self.valid = False
+                self.error_message = "Powermeter not found"
         except Exception as e:
             self.valid = False
             self.error_message = e

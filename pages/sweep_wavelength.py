@@ -233,7 +233,7 @@ class ReadPowerTask():
         try:
             count = 0
             max_try = 10
-            e = None
+            error = None
             # sometimes the powermeter will have VisaIOError and rerunning the command will fix it.
             while count < max_try:
                 try:
@@ -247,10 +247,10 @@ class ReadPowerTask():
                 except Exception as e:
                     LOGGER.log(e)
                     count += 1
-                    e = e
+                    error = e
                     sleep(0.1)
             if count == max_try:
-                raise e
+                raise error
         except Exception as e:
             LOGGER.log(e)
             raise e
