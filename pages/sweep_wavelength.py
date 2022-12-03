@@ -398,6 +398,8 @@ class SweepWavelengthTask(Task):
         self.find_max_power_by_actuator()
         self.find_target_power_by_ndfilter()
         self.measure_lifetime()
+        if self.check_stopping():
+            return
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
             self.curr_wavelength += float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
@@ -421,12 +423,12 @@ class SweepWavelengthTask(Task):
         curr_actuator_position = float(
             VARIABLES.var_entry_curr_actuator_position.get())
         # move actuator to a misaligned position to find background power
-        if curr_actuator_position >= 2:
+        if curr_actuator_position >= 6:
             VARIABLES.var_spinbox_target_actuator_position.set(
-                round(curr_actuator_position - 1.5, 4))
+                round(curr_actuator_position - 6, 4))
         else:
             VARIABLES.var_spinbox_target_actuator_position.set(
-                round(curr_actuator_position + 1.5, 4))
+                round(curr_actuator_position + 6, 4))
         self.page.set_actuator_position_task.task_loop()
         # wait for var_entry_curr_power to update before getting power
         sleep(INSTANCES.powermeter.max_period + 0.2)
@@ -597,12 +599,6 @@ class SweepWavelengthTask(Task):
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
 
-    def check_stopping(self):
-        if self.status == PAUSING or self.status == TERMINATING:
-            return True
-        else:
-            return False
-
     def reset(self):
         super().reset()
         VARIABLES.var_spinbox_target_angle.set(0)
@@ -611,4 +607,5 @@ class SweepWavelengthTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
+        self.page.save.reset()
         LOGGER.reset()

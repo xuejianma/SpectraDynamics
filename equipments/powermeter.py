@@ -47,6 +47,7 @@ class PowermeterSimulator:
     def __init__(self):
         self.valid = True
         self.error_message = ""
+        self.max_period = 0.4
 
     def set_wavelength(self, wavelength):
         pass

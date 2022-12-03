@@ -1,10 +1,10 @@
 import numpy as np
 from tkinter import ttk
-from utils.task import Task
+from utils.task import PAUSED, Task
 from utils.plot import Plot
 from utils.spinbox import Spinbox
 from utils.save import Save
-from utils.config import VARIABLES, INSTANCES
+from utils.config import VARIABLES, INSTANCES, LOGGER
 
 
 class Lifetime:
@@ -69,8 +69,10 @@ class LifetimeTask(Task):
         self.data_ch2 = None
 
     def task(self):
+        LOGGER.log(
+            f"Measuring lifetime, round %d/%d..." % (self.i + 1, self.num))
         self.X, curr_data_ch1, curr_data_ch2 = self.oscilloscope.get_data(
-            int(VARIABLES.var_spinbox_lifetime_wait_time.get()))
+            float(VARIABLES.var_spinbox_lifetime_wait_time.get()))
         self.data_ch1 = np.asarray(self.data_ch1) * (self.i / (self.i + 1)) + np.asarray(
             curr_data_ch1) * (1 / (self.i + 1)) if self.i > 0 else curr_data_ch1
         self.data_ch2 = np.asarray(self.data_ch2) * (self.i / (self.i + 1)) + np.asarray(
@@ -86,14 +88,20 @@ class LifetimeTask(Task):
             self.X, self.data_ch2, "-", c="black", linewidth=0.5)
 
     def start(self):
+        print(self.data_ch1)
         self.num = int(float(VARIABLES.var_spinbox_lifetime_num.get()))
         self.page.spinbox_num.config(state="disabled")
-        self.page.save.update_datetime()
+        if self.status != PAUSED:
+            self.page.save.update_datetime()
         super().start()
 
     def reset(self):
         super().reset()
+        self.data_ch1 = None
+        self.data_ch2 = None
         self.page.spinbox_num.config(state="normal")
+        self.page.save.reset()
+        LOGGER.reset()
 
     def save_data(self):
         data_to_save = np.asarray([self.X, self.data_ch1, self.data_ch2])

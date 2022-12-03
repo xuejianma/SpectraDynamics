@@ -78,3 +78,6 @@ class Save:
                 LOGGER.log("Error saving to {}: ".format(filename) + str(e))
         else:
             LOGGER.log("Please select a directory and filename")
+
+    def reset(self):
+        self.data_dict = {"header": [], "data": []}

@@ -74,8 +74,9 @@ class Task:
         Start the task loop in a thread.
         """
         if self.status != RUNNING:
+            if self.status != PAUSED:
+                self.label_remaining.config(text=self.get_remaining_time())
             self.status = RUNNING
-            self.label_remaining.config(text=self.get_remaining_time())
             self.progress_bar["value"] = self.i / self.num * 100
             self.button_start["state"] = "disabled"
             self.button_pause["state"] = "normal"
@@ -92,6 +93,8 @@ class Task:
             time_start = time()
             self.task()
             time_end = time()
+            if self.check_stopping():
+                break
             self.time_per_iteration = (
                 self.time_per_iteration * self.i + time_end - time_start) / (self.i + 1)
             self.label_remaining.config(text=self.get_remaining_time())
@@ -155,3 +158,12 @@ class Task:
         self.status = TERMINATING
         self.button_pause["state"] = "disabled"
         self.button_terminate["state"] = "disabled"
+
+    def check_stopping(self):
+        """
+        Check if the task is being terminated or paused.
+        """
+        if self.status == PAUSING or self.status == TERMINATING:
+            return True
+        else:
+            return False
