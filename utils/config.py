@@ -1,10 +1,10 @@
 import configparser
 import tkinter as tk
-from equipments.oscilloscope import OscilloscopeSimulator
-from equipments.ndfilter import NDFilterSimulator
-from equipments.powermeter import PowermeterSimulator
-from equipments.monochromator import MonochromatorSimulator
-from equipments.actuator import ActuatorSimulator
+from equipments.oscilloscope import Oscilloscope#Simulator
+from equipments.ndfilter import NDFilter#Simulator
+from equipments.powermeter import Powermeter#Simulator
+from equipments.monochromator import Monochromator#Simulator
+from equipments.actuator import Actuator#Simulator
 from datetime import datetime
 
 
@@ -40,6 +40,13 @@ class Variables:
         self.var_spinbox_sweep_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_sweep_wavelength_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_filename = tk.StringVar()
+        self.var_spinbox_start_angle = tk.StringVar(value=0)
+        self.var_spinbox_end_angle = tk.StringVar(value=90)
+        self.var_spinbox_step_angle = tk.StringVar(value=1)
+        self.var_spinbox_sweep_power_num = tk.StringVar(value=10)
+        self.var_spinbox_sweep_power_wait_time = tk.StringVar(value=6)
+        self.var_entry_sweep_power_directory = tk.StringVar()
+        self.var_entry_sweep_power_filename = tk.StringVar()
         self.var_logger_status = tk.StringVar()
 
 
@@ -49,11 +56,11 @@ class Instances:
     """
 
     def initialize_instances(self):
-        self.oscilloscope = OscilloscopeSimulator()
-        self.ndfilter = NDFilterSimulator()
-        self.powermeter = PowermeterSimulator()
-        self.monochromator = MonochromatorSimulator()
-        self.actuator = ActuatorSimulator()
+        self.oscilloscope = Oscilloscope()#Simulator()
+        self.ndfilter = NDFilter()#Simulator()
+        self.powermeter = Powermeter()#Simulator()
+        self.monochromator = Monochromator()#Simulator()
+        self.actuator = Actuator()#Simulator()
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 
