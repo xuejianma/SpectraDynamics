@@ -14,37 +14,41 @@ class SweepPower:
         frame = ttk.Frame(parent)
         frame_1 = ttk.Frame(frame)
         frame_1.pack(side="top", anchor="w", padx=10, pady=10)
-        frame_2 = ttk.Frame(frame)
-        frame_2.pack(side="top", padx=10, pady=10)
-        frame_2_1 = ttk.Frame(frame_2)
-        frame_2_1.pack(side="left", padx=100)
-        frame_2_2 = ttk.Frame(frame_2)
-        frame_2_2.pack(side="left", padx=(100, 50))
-        frame_3 = ttk.Frame(frame)
-        frame_3.pack(side="top", padx=10, pady=10)
-        frame_3_1 = ttk.Frame(frame_3)
-        frame_3_1.pack(side="left", padx=100)
-        frame_3_2 = ttk.Frame(frame_3)
-        frame_3_2.pack(side="left", padx=(100, 50))
         frame_1_1 = ttk.Frame(frame_1)
         frame_1_1.pack(side="left", padx=100)
         frame_1_2 = ttk.Frame(frame_1)
         frame_1_2.pack(side="left", padx=(100, 50))
         frame_1_3 = ttk.Frame(frame_1)
         frame_1_3.pack(side="left", padx=(100, 50))
-        ttk.Label(frame_1_1, text="Start angle (deg): ").pack(side="top", anchor="w", pady=4)
-        Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_start_angle).pack(side="top", anchor="w", pady=4)
-        ttk.Label(frame_1_1, text="End angle (deg): ").pack(side="top", anchor="w", pady=4)
-        Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_end_angle).pack(side="top", anchor="w", pady=4)
-        ttk.Label(frame_1_1, text="Step angle (deg): ", width=15).pack(side="top", anchor="w", pady=4)
-        Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_step_angle).pack(side="top", anchor="w", pady=4)
-        ttk.Label(frame_1_2, text="Number of measurements: ").pack(side="top", anchor="w", pady=4)
-        Spinbox(frame_1_2, from_=1, to=float(
-            "inf"),increment=1, width=15, textvariable=VARIABLES.var_spinbox_sweep_power_num).pack(side="top", anchor="w", pady=4)
-        ttk.Label(frame_1_2, text="Wait time (s): ").pack(side="top", anchor="w", pady=4)
+        frame_2 = ttk.Frame(frame)
+        frame_2.pack(side="top", padx=10, pady=10)
+        frame_2_1 = ttk.Frame(frame_2)
+        frame_2_1.pack(side="left", padx=10)
+        frame_2_2 = ttk.Frame(frame_2)
+        frame_2_2.pack(side="left", padx=10)
+        frame_3 = ttk.Frame(frame)
+        frame_3.pack(side="top", padx=10, pady=10)
+        frame_3_1 = ttk.Frame(frame_3)
+        frame_3_1.pack(side="left", padx=10)
+        frame_3_2 = ttk.Frame(frame_3)
+        frame_3_2.pack(side="left", padx=10)
+        ttk.Label(frame_1_1, text="Start angle (deg): ").pack(side="top", anchor="w")
+        self.spinbox_start_angle = Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_start_angle)
+        self.spinbox_start_angle.pack(side="top", anchor="w")
+        ttk.Label(frame_1_1, text="End angle (deg): ").pack(side="top", anchor="w")
+        self.spinbox_end_angle = Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_end_angle)
+        self.spinbox_end_angle.pack(side="top", anchor="w")
+        ttk.Label(frame_1_1, text="Step angle (deg): ", width=15).pack(side="top", anchor="w")
+        self.spinbox_step_angle = Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_step_angle)
+        self.spinbox_step_angle.pack(side="top", anchor="w")
+        ttk.Label(frame_1_2, text="Number of measurements: ").pack(side="top", anchor="w")
+        self.spinbox_sweep_power_num = Spinbox(frame_1_2, from_=1, to=float(
+            "inf"),increment=1, width=15, textvariable=VARIABLES.var_spinbox_sweep_power_num)
+        self.spinbox_sweep_power_num.pack(side="top", anchor="w")
+        ttk.Label(frame_1_2, text="Wait time (s): ").pack(side="top", anchor="w")
         Spinbox(frame_1_2, from_=0, to=float(
-            "inf"), increment=1, width=15, textvariable=VARIABLES.var_spinbox_sweep_power_wait_time).pack(side="top", anchor="w", pady=4)
-        self.save = Save(frame_1_2, VARIABLES.var_entry_sweep_power_directory, VARIABLES.var_entry_sweep_power_filename)
+            "inf"), increment=1, width=15, textvariable=VARIABLES.var_spinbox_sweep_power_wait_time).pack(side="top", anchor="w")
+        self.save = Save(frame_1_3, VARIABLES.var_entry_sweep_power_directory, VARIABLES.var_entry_sweep_power_filename)
         SweepPowerTask(frame_1_3, self)
         ttk.Label(frame_2_1, text="Ch1 Instant (V-s)").pack(side="top")
         self.plot_lifetime_instant_ch1 = Plot(frame_2_1)
@@ -62,10 +66,17 @@ class SweepPowerTask(Task):
     def __init__(self, parent, page: SweepPower) -> None:
         super().__init__(parent)
         self.page = page
+        self.on_off_widgets = [self.page.spinbox_start_angle,
+                               self.page.spinbox_end_angle,
+                               self.page.spinbox_step_angle,
+                               self.page.spinbox_sweep_power_num,
+                               ]
 
     def task(self):
         INSTANCES.ndfilter.set_angle(self.curr_angle)
+        VARIABLES.var_entry_curr_angle.set(INSTANCES.ndfilter.get_angle())
         self.curr_power = np.round(INSTANCES.powermeter.get_power_uW(), 4)
+        VARIABLES.var_entry_curr_power.set(self.curr_power)
         num = int(VARIABLES.var_spinbox_sweep_power_num.get())
         X = None
         data_ch1 = None
@@ -110,6 +121,14 @@ class SweepPowerTask(Task):
         else:
             self.curr_wavelength -= float(
                 VARIABLES.var_spinbox_step_angle.get())
+    
+    def task_loop(self):
+        try:
+            super().task_loop()
+        except Exception as e:
+            LOGGER.log(e)
+            self.reset()
+            raise e
         
     def save_data(self, X, data_ch1, data_ch2):
         if self.check_stopping():
@@ -127,6 +146,8 @@ class SweepPowerTask(Task):
 
 
     def start(self):
+        for widget in self.on_off_widgets:
+            widget.config(state="disabled")
         self.num = int(abs(float(VARIABLES.var_spinbox_end_angle.get()) - float(
             VARIABLES.var_spinbox_start_angle.get()))) / float(VARIABLES.var_spinbox_step_angle.get()) + 1
         if self.status != PAUSED:
@@ -135,5 +156,12 @@ class SweepPowerTask(Task):
         super().start()
 
     def reset(self):
+        for widget in self.on_off_widgets:
+            widget.config(state="normal")
         self.page.save.reset()
         super().reset()
+
+    def paused(self):
+        super().paused()
+        for widget in self.on_off_widgets:
+            widget.config(state="normal")

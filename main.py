@@ -19,12 +19,12 @@ class App:
         self.root.protocol('WM_DELETE_WINDOW', self.on_closing)
         tabControl = ttk.Notebook(self.root)
         tab1 = Lifetime(tabControl).frame
-        tab2 = SweepWavelength(tabControl).frame
-        tab3 = SweepPower(tabControl).frame
+        tab2 = SweepPower(tabControl).frame
+        tab3 = SweepWavelength(tabControl).frame
         tab4 = DeviceManager(tabControl).frame
         tabControl.add(tab1, text='Lifetime')
-        tabControl.add(tab2, text='Sweep Wavelength')
-        tabControl.add(tab3, text='Sweep Power')
+        tabControl.add(tab2, text='Sweep Power')
+        tabControl.add(tab3, text='Sweep Wavelength')
         tabControl.add(tab4, text='Device Manager')
         tabControl.pack(expand=1, fill='both')
         self.status_bar = StatusBar(self.root, VARIABLES.var_logger_status)
