@@ -88,7 +88,6 @@ class LifetimeTask(Task):
             self.X, self.data_ch2, "-", c="black", linewidth=0.5)
 
     def start(self):
-        print(self.data_ch1)
         self.num = int(float(VARIABLES.var_spinbox_lifetime_num.get()))
         self.page.spinbox_num.config(state="disabled")
         if self.status != PAUSED:
