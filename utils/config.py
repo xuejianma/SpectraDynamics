@@ -1,12 +1,13 @@
 import configparser
 import tkinter as tk
-from equipments.oscilloscope import Oscilloscope#Simulator
-from equipments.ndfilter import NDFilter#Simulator
-from equipments.powermeter import Powermeter#Simulator
-from equipments.monochromator import Monochromator#Simulator
-from equipments.actuator import Actuator#Simulator
+from equipments.oscilloscope import Oscilloscope, OscilloscopeSimulator
+from equipments.ndfilter import NDFilter, NDFilterSimulator
+from equipments.powermeter import Powermeter, PowermeterSimulator
+from equipments.monochromator import Monochromator, MonochromatorSimulator
+from equipments.actuator import Actuator, ActuatorSimulator
 from datetime import datetime
 
+TEST_MODE = True
 
 class Variables:
     """
@@ -56,11 +57,11 @@ class Instances:
     """
 
     def initialize_instances(self):
-        self.oscilloscope = Oscilloscope()#Simulator()
-        self.ndfilter = NDFilter()#Simulator()
-        self.powermeter = Powermeter()#Simulator()
-        self.monochromator = Monochromator()#Simulator()
-        self.actuator = Actuator()#Simulator()
+        self.oscilloscope = OscilloscopeSimulator() if TEST_MODE else Oscilloscope()
+        self.ndfilter = NDFilterSimulator() if TEST_MODE else NDFilter()
+        self.powermeter = PowermeterSimulator() if TEST_MODE else Powermeter()
+        self.monochromator = MonochromatorSimulator() if TEST_MODE else Monochromator()
+        self.actuator = ActuatorSimulator() if TEST_MODE else Actuator()
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 
