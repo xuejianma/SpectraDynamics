@@ -1,5 +1,6 @@
 from pyvisa import ResourceManager
 from time import sleep, time
+from threading import Lock
 
 
 class Powermeter:
@@ -9,6 +10,7 @@ class Powermeter:
         self.error_message = ""
         self.max_period = 0.4
         self.num = 50
+        self.lock = Lock()
         try:
             self.rm = ResourceManager()
             self.instrument = None
@@ -29,6 +31,7 @@ class Powermeter:
         self.instrument.write('CORRection:WAVelength ' + str(wavelength))
 
     def get_power(self):
+        self.lock.acquire()
         power_sum = 0
         t1 = time()
         for _ in range(self.num):
@@ -37,6 +40,7 @@ class Powermeter:
         ret = power_sum / self.num
         t2 = time()
         self.num = int(self.num * (self.max_period / (t2 - t1)))
+        self.lock.release()
         return ret
 
     def get_power_uW(self):
