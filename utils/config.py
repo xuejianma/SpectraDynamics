@@ -118,8 +118,14 @@ class Logger:
     def reset(self):
         self.initialize_status()
 
+class Utils:
+    def set_background_power(self):
+        VARIABLES.var_spinbox_background_power.set(
+            round(float(VARIABLES.var_entry_curr_power.get()) +
+                  float(VARIABLES.var_spinbox_background_power.get()), 4))
 
 VARIABLES = Variables()
 LOGGER = Logger()
 DEFAULT = Default()
 INSTANCES = Instances()
+UTILS = Utils()

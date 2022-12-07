@@ -1,6 +1,7 @@
+from time import sleep
 from tkinter import ttk
 from utils.spinbox import Spinbox
-from utils.config import VARIABLES, INSTANCES, LOGGER
+from utils.config import UTILS, VARIABLES, INSTANCES, LOGGER
 from utils.save import Save
 from utils.task import PAUSED, Task
 from utils.plot import Plot
@@ -41,6 +42,11 @@ class SweepPower:
         ttk.Label(frame_1_1, text="Step angle (deg): ", width=15).pack(side="top", anchor="w")
         self.spinbox_step_angle = Spinbox(frame_1_1, from_=0, to=360, increment=1, width=15, textvariable=VARIABLES.var_spinbox_step_angle)
         self.spinbox_step_angle.pack(side="top", anchor="w")
+        ttk.Label(frame_1_2, text="Background Power (uW):").pack(
+            side="top", anchor="w")
+        self.spinbox_background_power = Spinbox(frame_1_2, from_=0, to=float(
+            "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_background_power)
+        self.spinbox_background_power.pack(side="top", anchor="w")
         ttk.Label(frame_1_2, text="Number of measurements: ").pack(side="top", anchor="w")
         self.spinbox_sweep_power_num = Spinbox(frame_1_2, from_=1, to=float(
             "inf"),increment=1, width=15, textvariable=VARIABLES.var_spinbox_sweep_power_num)
@@ -70,12 +76,14 @@ class SweepPowerTask(Task):
                                self.page.spinbox_end_angle,
                                self.page.spinbox_step_angle,
                                self.page.spinbox_sweep_power_num,
+                               self.page.spinbox_background_power,
                                ]
 
     def task(self):
         INSTANCES.ndfilter.set_angle(self.curr_angle)
         VARIABLES.var_entry_curr_angle.set(INSTANCES.ndfilter.get_angle())
-        self.curr_power = np.round(INSTANCES.powermeter.get_power_uW(), 4)
+        sleep(INSTANCES.powermeter.max_period + 0.2)
+        self.curr_power = np.round(INSTANCES.powermeter.get_power_uW(), 4) - float(VARIABLES.var_spinbox_background_power.get())
         VARIABLES.var_entry_curr_power.set(self.curr_power)
         num = int(VARIABLES.var_spinbox_sweep_power_num.get())
         X = None

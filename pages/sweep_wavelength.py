@@ -1,5 +1,5 @@
 from tkinter import ttk
-from utils.config import INSTANCES, VARIABLES, LOGGER
+from utils.config import INSTANCES, VARIABLES, LOGGER, UTILS
 from utils.spinbox import Spinbox
 from utils.plot import Plot
 from utils.task import Task, RUNNING, PAUSED, PAUSING, TERMINATING
@@ -118,7 +118,7 @@ class SweepWavelength:
             frame_1_5, text="Turn ON", command=self.toggle_power_reading)
         self.button_power.pack(side="top", anchor="w")
         self.button_set_background_power = ttk.Button(
-            frame_1_5, text="Set As Background Power", command=self.set_background_power)
+            frame_1_5, text="Set As Background Power", command=UTILS.set_background_power)
         self.button_set_background_power.pack(side="top", anchor="w")
         ttk.Label(frame_1_5, text="Background Power (uW):").pack(
             side="top", anchor="w")
@@ -188,11 +188,6 @@ class SweepWavelength:
 
     def on_home_actuator(self):
         self.home_actuator_task.start()
-
-    def set_background_power(self):
-        VARIABLES.var_spinbox_background_power.set(
-            round(float(VARIABLES.var_entry_curr_power.get()) +
-                  float(VARIABLES.var_spinbox_background_power.get()), 4))
 
 
 class SetAngleTask():
