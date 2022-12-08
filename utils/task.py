@@ -119,7 +119,7 @@ class Task:
         overwritten by users. Make sure to use self.i as the loop counter.
         """
         print(self.i)
-        sleep(5)
+        sleep(1)
 
     def reset(self):
         """

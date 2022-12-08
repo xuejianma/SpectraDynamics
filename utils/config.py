@@ -5,9 +5,12 @@ from equipments.ndfilter import NDFilter, NDFilterSimulator
 from equipments.powermeter import Powermeter, PowermeterSimulator
 from equipments.monochromator import Monochromator, MonochromatorSimulator
 from equipments.actuator import Actuator, ActuatorSimulator
+from equipments.cwcontroller import CWController, CWControllerSimulator
+from equipments.lockin import Lockin, LockinSimulator
 from datetime import datetime
 
 TEST_MODE = True
+
 
 class Variables:
     """
@@ -49,6 +52,16 @@ class Variables:
         self.var_entry_sweep_power_directory = tk.StringVar()
         self.var_entry_sweep_power_filename = tk.StringVar()
         self.var_logger_status = tk.StringVar()
+        self.var_entry_cwcontroller_status = tk.StringVar(value='OFF')
+        self.var_entry_cwcontroller_curr_setpoint = tk.StringVar(value=0)
+        self.var_spinbox_cwcontroller_target_setpoint = tk.StringVar(value=0)
+        self.var_spinbox_cwcontroller_setpoint_limit = tk.StringVar(value=100)
+        self.var_spinbox_cwcontroller_start_setpoint = tk.StringVar(value=0)
+        self.var_spinbox_cwcontroller_end_setpoint = tk.StringVar(value=10)
+        self.var_spinbox_cwcontroller_step_setpoint = tk.StringVar(value=0.1)
+        self.var_entry_sweep_power_cw_directory = tk.StringVar()
+        self.var_entry_sweep_power_cw_filename = tk.StringVar()
+        self.var_spinbox_sweep_power_cw_num = tk.StringVar(value=10)
 
 
 class Instances:
@@ -57,11 +70,16 @@ class Instances:
     """
 
     def initialize_instances(self):
-        self.oscilloscope = OscilloscopeSimulator() if TEST_MODE else Oscilloscope()
-        self.ndfilter = NDFilterSimulator() if TEST_MODE else NDFilter()
-        self.powermeter = PowermeterSimulator() if TEST_MODE else Powermeter()
-        self.monochromator = MonochromatorSimulator() if TEST_MODE else Monochromator()
-        self.actuator = ActuatorSimulator() if TEST_MODE else Actuator()
+        self.oscilloscope = Oscilloscope() if not TEST_MODE else OscilloscopeSimulator()
+        self.ndfilter = NDFilter() if not TEST_MODE else NDFilterSimulator()
+        self.powermeter = Powermeter() if not TEST_MODE else PowermeterSimulator()
+        self.monochromator = Monochromator() if not TEST_MODE else MonochromatorSimulator()
+        self.actuator = Actuator() if not TEST_MODE else ActuatorSimulator()
+        self.cwcontroller = CWController() if not TEST_MODE else CWControllerSimulator()
+        self.lockin_top = Lockin(
+            'top') if not TEST_MODE else LockinSimulator('top')
+        self.lockin_bottom = Lockin(
+            'bottom') if not TEST_MODE else LockinSimulator('bottom')
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 
@@ -69,10 +87,21 @@ class Instances:
         try:
             VARIABLES.var_entry_curr_angle.set(
                 round(self.ndfilter.get_angle(), 4))
+        except:
+            pass
+        try:
             VARIABLES.var_entry_curr_wavelength.set(
                 round(self.monochromator.get_wavelength(), 4))
+        except:
+            pass
+        try:
             VARIABLES.var_entry_curr_actuator_position.set(
                 round(self.actuator.get_position(), 4))
+        except:
+            pass
+        try:
+            VARIABLES.var_entry_cwcontroller_curr_setpoint.set(
+                INSTANCES.cwcontroller.get_current_setpoint_mA())
         except:
             pass
 
@@ -119,11 +148,13 @@ class Logger:
     def reset(self):
         self.initialize_status()
 
+
 class Utils:
     def set_background_power(self):
         VARIABLES.var_spinbox_background_power.set(
             round(float(VARIABLES.var_entry_curr_power.get()) +
                   float(VARIABLES.var_spinbox_background_power.get()), 4))
+
 
 VARIABLES = Variables()
 LOGGER = Logger()

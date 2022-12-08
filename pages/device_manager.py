@@ -15,12 +15,16 @@ class DeviceManager:
         Device(frame, "Actuator", INSTANCES.actuator)
         Device(frame, "NDFilter", INSTANCES.ndfilter)
         Device(frame, "Powermeter", INSTANCES.powermeter)
+        Device(frame, "CWController", INSTANCES.cwcontroller)
+        Device(frame, "Lockin (Top)", INSTANCES.lockin_top, args={"top_or_bottom": "top"})
+        Device(frame, "Lockin (Bottom)", INSTANCES.lockin_bottom, args={"top_or_bottom": "bottom"})
         return frame
 
 
 class Device(ttk.Frame):
-    def __init__(self, parent, name, instance):
+    def __init__(self, parent, name, instance, args=None):
         super().__init__(parent)
+        self.args = args
         self.instance = instance
         self.pack(side="top", anchor="w", padx=(100, 0), pady=(30, 0))
         ttk.Label(self, text=name).pack(side="left")
@@ -36,7 +40,10 @@ class Device(ttk.Frame):
         self.label_error.pack(side="left", padx=10)
 
     def reconnect(self):
-        self.instance.__init__()
+        if self.args:
+            self.instance.__init__(**self.args)
+        else:
+            self.instance.__init__()
         self.label_status.config(
             text="SUCCESS" if self.instance.valid else "FAIL")
         self.label_error.config(

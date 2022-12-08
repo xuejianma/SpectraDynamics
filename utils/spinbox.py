@@ -7,9 +7,9 @@ from tkinter import ttk
 
 class Spinbox(ttk.Spinbox):
     def __init__(self, master=None, from_=None, to=None, **kw):
-        ttk.Spinbox.__init__(self, master, from_=from_, to=to, **kw)
-        self.from_ = from_
-        self.to = to
+        super().__init__(master, from_=from_, to=to, **kw)
+        self.from_ = from_  # for typing in validating
+        self.to = to  # for typing in validating
         self._validate = self.register(self._on_validate)
         self.config(validate="key", validatecommand=(self._validate, '%P'))
 
