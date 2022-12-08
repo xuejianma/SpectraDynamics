@@ -127,7 +127,7 @@ class SweepPowerTask(Task):
             self.curr_angle += float(
                 VARIABLES.var_spinbox_step_angle.get())
         else:
-            self.curr_wavelength -= float(
+            self.curr_angle -= float(
                 VARIABLES.var_spinbox_step_angle.get())
     
     def task_loop(self):
