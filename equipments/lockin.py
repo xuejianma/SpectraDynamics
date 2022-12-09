@@ -79,4 +79,5 @@ class LockinSimulator():
 
     def get_output(self):
         from random import random
-        return random()
+        from utils.config import VARIABLES
+        return float(VARIABLES.var_entry_cwcontroller_curr_setpoint.get()) + random() * 0.1

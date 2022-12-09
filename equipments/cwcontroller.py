@@ -37,7 +37,7 @@ class CWController:
         self.instrument.write("OUTP OFF")
     
     def get_status(self):
-        return self.instrument.query("OUTP?")
+        return 'ON' if '1' in self.instrument.query("OUTP?") else 'OFF'
 
 class CWControllerSimulator:
     def __init__(self):

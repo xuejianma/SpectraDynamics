@@ -9,7 +9,7 @@ from equipments.cwcontroller import CWController, CWControllerSimulator
 from equipments.lockin import Lockin, LockinSimulator
 from datetime import datetime
 
-TEST_MODE = True
+TEST_MODE = False
 
 
 class Variables:
@@ -62,6 +62,7 @@ class Variables:
         self.var_entry_sweep_power_cw_directory = tk.StringVar()
         self.var_entry_sweep_power_cw_filename = tk.StringVar()
         self.var_spinbox_sweep_power_cw_num = tk.StringVar(value=10)
+        self.var_spinbox_cwcontroller_wait_time = tk.StringVar(value=1)
 
 
 class Instances:
@@ -86,17 +87,17 @@ class Instances:
     def initialize_readings(self):
         try:
             VARIABLES.var_entry_curr_angle.set(
-                round(self.ndfilter.get_angle(), 4))
+                round(self.ndfilter.get_angle(), 6))
         except:
             pass
         try:
             VARIABLES.var_entry_curr_wavelength.set(
-                round(self.monochromator.get_wavelength(), 4))
+                round(self.monochromator.get_wavelength(), 6))
         except:
             pass
         try:
             VARIABLES.var_entry_curr_actuator_position.set(
-                round(self.actuator.get_position(), 4))
+                round(self.actuator.get_position(), 6))
         except:
             pass
         try:
@@ -153,7 +154,7 @@ class Utils:
     def set_background_power(self):
         VARIABLES.var_spinbox_background_power.set(
             round(float(VARIABLES.var_entry_curr_power.get()) +
-                  float(VARIABLES.var_spinbox_background_power.get()), 4))
+                  float(VARIABLES.var_spinbox_background_power.get()), 6))
 
 
 VARIABLES = Variables()

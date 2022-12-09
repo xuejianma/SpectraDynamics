@@ -83,7 +83,7 @@ class SweepPowerTask(Task):
         INSTANCES.ndfilter.set_angle(self.curr_angle)
         VARIABLES.var_entry_curr_angle.set(INSTANCES.ndfilter.get_angle())
         sleep(INSTANCES.powermeter.max_period + 0.2)
-        self.curr_power = np.round(INSTANCES.powermeter.get_power_uW(), 4) - float(VARIABLES.var_spinbox_background_power.get())
+        self.curr_power = round(INSTANCES.powermeter.get_power_uW() - float(VARIABLES.var_spinbox_background_power.get()), 6)
         VARIABLES.var_entry_curr_power.set(self.curr_power)
         num = int(VARIABLES.var_spinbox_sweep_power_num.get())
         X = None
@@ -129,6 +129,7 @@ class SweepPowerTask(Task):
         else:
             self.curr_angle -= float(
                 VARIABLES.var_spinbox_step_angle.get())
+        self.curr_angle = round(self.curr_angle, 6)
     
     def task_loop(self):
         try:

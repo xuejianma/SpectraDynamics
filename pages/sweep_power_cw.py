@@ -37,7 +37,7 @@ class SweepPowerCW:
         ttk.Entry(frame_1_1, state="readonly", textvariable=VARIABLES.var_entry_cwcontroller_curr_setpoint).pack(side="top", anchor="w", padx=10)
         ttk.Label(frame_1_1, text="Set Current Setpoint (mA): ").pack(side="top", anchor="w", padx=10)
         ttk.Label(frame_1_1, text="Recommended Safe Range: 0 - 40mA", font="TkDefaultFont 8").pack(side="top", anchor="w", padx=10)
-        self.spinbox_target_setpoint = Spinbox(frame_1_1, from_=0, to=float('inf'), textvariable=VARIABLES.var_spinbox_cwcontroller_target_setpoint)
+        self.spinbox_target_setpoint = Spinbox(frame_1_1, from_=0, to=float('inf'), increment=0.1, textvariable=VARIABLES.var_spinbox_cwcontroller_target_setpoint)
         self.spinbox_target_setpoint.pack(side="top", anchor="w", padx=10)
         ttk.Button(frame_1_1, text="Set", command=self.on_set_current_setpoint).pack(side="top", anchor="w", padx=10)
         ttk.Label(frame_1_2, text="Start Current Setpoint (mA): ").pack(side="top", anchor="w", padx=10)
@@ -56,7 +56,9 @@ class SweepPowerCW:
         self.spinbox_sweep_power_cw_num.pack(side="top", anchor="w", padx=10)
         ttk.Label(frame_1_3, text="Background Power (uW):").pack(side="top", anchor="w")
         self.spinbox_background_power = Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_background_power)
-        self.spinbox_background_power.pack(side="top", anchor="w", pady=(0, 20))
+        self.spinbox_background_power.pack(side="top", anchor="w")
+        ttk.Label(frame_1_3, text="Wait time after each setpoint change (s):").pack(side="top", anchor="w")
+        Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_cwcontroller_wait_time).pack(side="top", anchor="w", pady=(0, 20))
         self.save = Save(frame_1_3, VARIABLES.var_entry_sweep_power_cw_directory, VARIABLES.var_entry_sweep_power_cw_filename)
         ttk.Label(frame_2_1, text="Ch1 (V-uW)").pack(side="top")
         self.plot_lockin_top = Plot(frame_2_1, figsize=(12, 8))
@@ -84,32 +86,37 @@ class SweepPowerCWTask(Task):
         self.on_off_widgets = [self.page.spinbox_start_setpoint,
                                self.page.spinbox_end_setpoint,
                                self.page.spinbox_step_setpoint,
+                               self.page.spinbox_target_setpoint,
                                self.page.spinbox_sweep_power_cw_num,
                                self.page.spinbox_background_power
                                ]
+        
     
     def task(self):
         INSTANCES.cwcontroller.set_current_setpoint(self.curr_setpoint)
+        sleep(float(VARIABLES.var_spinbox_cwcontroller_wait_time.get()))
+        VARIABLES.var_entry_cwcontroller_curr_setpoint.set(round(INSTANCES.cwcontroller.get_current_setpoint_mA(), 6))
         sleep(INSTANCES.powermeter.max_period + 0.2)
-        self.curr_power = np.round(INSTANCES.powermeter.get_power_uW(), 4) - float(VARIABLES.var_spinbox_background_power.get())
+        self.curr_power = round(INSTANCES.powermeter.get_power_uW() - float(VARIABLES.var_spinbox_background_power.get()), 6)
+        LOGGER.log("[Sweeping power (CW)] Setpoint (mA): {}, Power (uW): {}.".format(self.curr_setpoint, self.curr_power))
         num = int(VARIABLES.var_spinbox_sweep_power_cw_num.get())
-        X = None
-        data_ch1 = None
-        data_ch2 = None
+        data_lockin_top = 0
+        data_lockin_bottom = 0
         for i in range(num):
             if self.check_stopping():
                 return
-            LOGGER.log("[Sweeping power (CW)] Setpoint (mA): {}, Power (uW): {}, Measurement: {}/{}.".format(self.curr_setpoint, self.curr_power, i + 1, num))
-            X, curr_data_ch1, curr_data_ch2 = INSTANCES.lockin_top.get_output(), INSTANCES.lockin_bottom.get_output()
-            data_ch1 = np.asarray(data_ch1) * (i / (i + 1)) + np.asarray(
-                curr_data_ch1) * (1 / (i + 1)) if i > 0 else curr_data_ch1
-            data_ch2 = np.asarray(data_ch2) * (i / (i + 1)) + np.asarray(
-                curr_data_ch2) * (1 / (i + 1)) if i > 0 else curr_data_ch2
-            # self.page.plot_lockin_top.plot(
-            #     X, curr_data_ch1, "-", c="black", linewidth=0.5)
-            # self.page.plot_lockin_bottom.plot(
-            #     X, data_ch1, "-", c="black", linewidth=0.5)
-        self.save_data(X, data_ch1, data_ch2)
+            curr_data_top, curr_data_bottom = INSTANCES.lockin_top.get_output(), INSTANCES.lockin_bottom.get_output()
+            data_lockin_top = data_lockin_top * (i / (i + 1)) + curr_data_top / (i + 1)
+            data_lockin_bottom = data_lockin_bottom * (i / (i + 1)) + curr_data_bottom / (i + 1)
+        self.X.append(self.curr_setpoint)
+        self.power_list.append(self.curr_power)
+        self.data_lockin_top_list.append(data_lockin_top)
+        self.data_lockin_bottom_list.append(data_lockin_bottom)
+        self.page.plot_lockin_top.plot(
+            self.power_list, self.data_lockin_top_list, "-", c="black", linewidth=0.5)
+        self.page.plot_lockin_bottom.plot(
+            self.power_list, self.data_lockin_bottom_list, "-", c="black", linewidth=0.5)
+        self.save_data()
         if self.check_stopping():
             return
         if float(VARIABLES.var_spinbox_cwcontroller_start_setpoint.get()) <= float(VARIABLES.var_spinbox_cwcontroller_end_setpoint.get()):
@@ -118,7 +125,7 @@ class SweepPowerCWTask(Task):
         else:
             self.curr_setpoint -= float(
                 VARIABLES.var_spinbox_cwcontroller_step_setpoint.get())
-
+        self.curr_setpoint = round(self.curr_setpoint, 6)
 
     def task_loop(self):
         try:
@@ -129,7 +136,11 @@ class SweepPowerCWTask(Task):
             raise e
     
     def save_data(self):
-        pass
+        if self.check_stopping():
+            return
+        self.page.save.data_dict["header"] = ["Setpoint (mA)", "Power (uW)", "Ch1 (V)", "Ch2 (V)"]
+        self.page.save.data_dict["data"] = [self.X, self.power_list, self.data_lockin_top_list, self.data_lockin_bottom_list]
+        self.page.save.save(update_datetime=False)
     
     def start(self):
         for widget in self.on_off_widgets:
@@ -139,11 +150,17 @@ class SweepPowerCWTask(Task):
         if self.status != PAUSED:
             self.curr_setpoint = float(VARIABLES.var_spinbox_cwcontroller_start_setpoint.get())
             self.page.save.update_datetime()
+            self.X = []
+            self.power_list = []
+            self.data_lockin_top_list = []
+            self.data_lockin_bottom_list = []
         super().start()
     
     def reset(self):
         for widget in self.on_off_widgets:
             widget.config(state="normal")
+        INSTANCES.cwcontroller.set_current_setpoint(0)
+        VARIABLES.var_entry_cwcontroller_curr_setpoint.set(round(INSTANCES.cwcontroller.get_current_setpoint_mA(), 6))
         self.page.save.reset()
         super().reset()
     

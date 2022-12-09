@@ -203,7 +203,7 @@ class SetAngleTask():
             INSTANCES.ndfilter.set_angle(
                 float(VARIABLES.var_spinbox_target_angle.get()))
             VARIABLES.var_entry_curr_angle.set(
-                round(INSTANCES.ndfilter.get_angle(), 4))
+                round(INSTANCES.ndfilter.get_angle(), 6))
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -237,7 +237,7 @@ class ReadPowerTask():
                         background_power = float(
                             VARIABLES.var_spinbox_background_power.get())
                         VARIABLES.var_entry_curr_power.set(
-                            round(power - background_power, 4))
+                            round(power - background_power, 6))
                     break
                 except Exception as e:
                     LOGGER.log(e)
@@ -276,12 +276,20 @@ class SetWavelengthTask():
         if not self.external_button_control:
             self.button_set_wavelength.config(state="disabled")
         try:
-            INSTANCES.monochromator.set_wavelength(
-                float(VARIABLES.var_spinbox_target_wavelength.get()))
             INSTANCES.powermeter.set_wavelength(
                 float(VARIABLES.var_spinbox_target_wavelength.get()))
+        except Exception as e:
+            LOGGER.log(e)
+            raise e
+        finally:
+            if not self.external_button_control:
+                self.button_set_wavelength.config(state="normal")
+            self.is_running = False
+        try:
+            INSTANCES.monochromator.set_wavelength(
+                float(VARIABLES.var_spinbox_target_wavelength.get()))
             VARIABLES.var_entry_curr_wavelength.set(
-                round(INSTANCES.monochromator.get_wavelength(), 4))
+                round(INSTANCES.monochromator.get_wavelength(), 6))
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -310,7 +318,7 @@ class SetActuatorPositionTask():
             INSTANCES.actuator.set_position(
                 float(VARIABLES.var_spinbox_target_actuator_position.get()))
             VARIABLES.var_entry_curr_actuator_position.set(
-                round(INSTANCES.actuator.get_position(), 4))
+                round(INSTANCES.actuator.get_position(), 6))
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -338,7 +346,7 @@ class HomeActuatorTask():
         try:
             INSTANCES.actuator.home()
             VARIABLES.var_entry_curr_actuator_position.set(
-                round(INSTANCES.actuator.get_position(), 4))
+                round(INSTANCES.actuator.get_position(), 6))
         except Exception as e:
             LOGGER.log(e)
             raise e
@@ -401,6 +409,7 @@ class SweepWavelengthTask(Task):
         else:
             self.curr_wavelength -= float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
+        self.curr_wavelength = round(self.curr_wavelength, 6)
 
     def task_loop(self):
         try:
@@ -420,16 +429,16 @@ class SweepWavelengthTask(Task):
         # move actuator to a misaligned position to find background power
         if curr_actuator_position >= 6:
             VARIABLES.var_spinbox_target_actuator_position.set(
-                round(curr_actuator_position - 6, 4))
+                round(curr_actuator_position - 6, 6))
         else:
             VARIABLES.var_spinbox_target_actuator_position.set(
-                round(curr_actuator_position + 6, 4))
+                round(curr_actuator_position + 6, 6))
         self.page.set_actuator_position_task.task_loop()
         # wait for var_entry_curr_power to update before getting power
         sleep(INSTANCES.powermeter.max_period + 0.2)
         self.page.set_background_power()
         VARIABLES.var_spinbox_target_actuator_position.set(
-            round(curr_actuator_position, 4))
+            round(curr_actuator_position, 6))
         self.page.set_actuator_position_task.task_loop()
 
     def find_max_power_by_actuator(self):
@@ -454,7 +463,7 @@ class SweepWavelengthTask(Task):
                                            + actuator_explore_range_step_size, actuator_explore_range_step_size):
             if self.check_stopping():
                 return
-            actuator_position = round(actuator_position, 4)
+            actuator_position = round(actuator_position, 6)
             VARIABLES.var_spinbox_target_actuator_position.set(
                 actuator_position)
             self.page.set_actuator_position_task.task_loop()
@@ -491,7 +500,7 @@ class SweepWavelengthTask(Task):
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
                 VARIABLES.var_spinbox_target_angle.set(
-                    round(curr_ndfilter_position + delta, 4))
+                    round(curr_ndfilter_position + delta, 6))
                 self.page.set_angle_task.task_loop()
                 # wait for var_entry_curr_power to update
                 sleep(INSTANCES.powermeter.max_period + 0.2)
