@@ -1,6 +1,6 @@
 from time import sleep
 from tkinter import ttk
-from utils.config import VARIABLES, INSTANCES, LOGGER
+from utils.config import GLOBALS, VARIABLES, INSTANCES, LOGGER
 from utils.spinbox import Spinbox
 from utils.save import Save
 from utils.task import PAUSED, Task
@@ -58,7 +58,9 @@ class SweepPowerCW:
         self.spinbox_background_power = Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_background_power)
         self.spinbox_background_power.pack(side="top", anchor="w")
         ttk.Label(frame_1_3, text="Wait time after each setpoint change (s):").pack(side="top", anchor="w")
-        Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_cwcontroller_wait_time).pack(side="top", anchor="w", pady=(0, 20))
+        Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_cwcontroller_wait_time).pack(side="top", anchor="w")
+        self.checkbutton_load_conversion = ttk.Checkbutton(frame_1_3, text="Load power from Setpoint Conversion page (instead of new powermeter measurement).", variable=VARIABLES.var_checkbutton_checkbutton_load_conversion)
+        self.checkbutton_load_conversion.pack(side="top", anchor="w")
         self.save = Save(frame_1_3, VARIABLES.var_entry_sweep_power_cw_directory, VARIABLES.var_entry_sweep_power_cw_filename)
         ttk.Label(frame_2_1, text="Ch1 (V-uW)").pack(side="top")
         self.plot_lockin_top = Plot(frame_2_1, figsize=(12, 8))
@@ -88,7 +90,8 @@ class SweepPowerCWTask(Task):
                                self.page.spinbox_step_setpoint,
                                self.page.spinbox_target_setpoint,
                                self.page.spinbox_sweep_power_cw_num,
-                               self.page.spinbox_background_power
+                               self.page.spinbox_background_power,
+                               self.page.checkbutton_load_conversion,
                                ]
         
     
@@ -96,8 +99,11 @@ class SweepPowerCWTask(Task):
         INSTANCES.cwcontroller.set_current_setpoint(self.curr_setpoint)
         sleep(float(VARIABLES.var_spinbox_cwcontroller_wait_time.get()))
         VARIABLES.var_entry_cwcontroller_curr_setpoint.set(round(INSTANCES.cwcontroller.get_current_setpoint_mA(), 6))
-        sleep(INSTANCES.powermeter.max_period + 0.2)
-        self.curr_power = round(INSTANCES.powermeter.get_power_uW() - float(VARIABLES.var_spinbox_background_power.get()), 6)
+        if VARIABLES.var_checkbutton_checkbutton_load_conversion.get():
+            self.curr_power = GLOBALS.powers_converted_from_setpoints[GLOBALS.setpoints_to_convert.index(self.curr_setpoint)]
+        else:
+            sleep(INSTANCES.powermeter.max_period + 0.2)
+            self.curr_power = round(INSTANCES.powermeter.get_power_uW() - float(VARIABLES.var_spinbox_background_power.get()), 6)
         LOGGER.log("[Sweeping power (CW)] Setpoint (mA): {}, Power (uW): {}.".format(self.curr_setpoint, self.curr_power))
         num = int(VARIABLES.var_spinbox_sweep_power_cw_num.get())
         data_lockin_top = 0
@@ -108,6 +114,8 @@ class SweepPowerCWTask(Task):
             curr_data_top, curr_data_bottom = INSTANCES.lockin_top.get_output(), INSTANCES.lockin_bottom.get_output()
             data_lockin_top = data_lockin_top * (i / (i + 1)) + curr_data_top / (i + 1)
             data_lockin_bottom = data_lockin_bottom * (i / (i + 1)) + curr_data_bottom / (i + 1)
+        if self.check_stopping():
+            return
         self.X.append(self.curr_setpoint)
         self.power_list.append(self.curr_power)
         self.data_lockin_top_list.append(data_lockin_top)
@@ -116,9 +124,9 @@ class SweepPowerCWTask(Task):
             self.power_list, self.data_lockin_top_list, "-", c="black", linewidth=0.5)
         self.page.plot_lockin_bottom.plot(
             self.power_list, self.data_lockin_bottom_list, "-", c="black", linewidth=0.5)
-        self.save_data()
         if self.check_stopping():
             return
+        self.save_data()
         if float(VARIABLES.var_spinbox_cwcontroller_start_setpoint.get()) <= float(VARIABLES.var_spinbox_cwcontroller_end_setpoint.get()):
             self.curr_setpoint += float(
                 VARIABLES.var_spinbox_cwcontroller_step_setpoint.get())

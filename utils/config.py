@@ -49,6 +49,7 @@ class Variables:
         self.var_spinbox_step_angle = tk.StringVar(value=1)
         self.var_spinbox_sweep_power_num = tk.StringVar(value=10)
         self.var_spinbox_sweep_power_wait_time = tk.StringVar(value=6)
+        self.var_checkbutton_checkbutton_load_conversion = tk.IntVar(value=0)
         self.var_entry_sweep_power_directory = tk.StringVar()
         self.var_entry_sweep_power_filename = tk.StringVar()
         self.var_logger_status = tk.StringVar()
@@ -63,6 +64,11 @@ class Variables:
         self.var_entry_sweep_power_cw_filename = tk.StringVar()
         self.var_spinbox_sweep_power_cw_num = tk.StringVar(value=10)
         self.var_spinbox_cwcontroller_wait_time = tk.StringVar(value=1)
+        self.var_spinbox_setpoint_conversion_start_setpoint = tk.StringVar(value=0)
+        self.var_spinbox_setpoint_conversion_end_setpoint = tk.StringVar(value=10)
+        self.var_spinbox_setpoint_conversion_step_setpoint = tk.StringVar(value=0.1)
+        self.var_entry_setpoint_conversion_directory = tk.StringVar()
+        self.var_entry_setpoint_conversion_filename = tk.StringVar()
 
 
 class Instances:
@@ -156,9 +162,19 @@ class Utils:
             round(float(VARIABLES.var_entry_curr_power.get()) +
                   float(VARIABLES.var_spinbox_background_power.get()), 6))
 
+class Globals:
+    """
+    Global non-tkinter variables.
+    """
+
+    def __init__(self):
+        self.setpoints_to_convert = []
+        self.powers_converted_from_setpoints = []
+
 
 VARIABLES = Variables()
 LOGGER = Logger()
 DEFAULT = Default()
 INSTANCES = Instances()
 UTILS = Utils()
+GLOBALS = Globals()

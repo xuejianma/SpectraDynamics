@@ -1,3 +1,4 @@
+import configparser
 import pyvisa as visa
 
 
@@ -9,6 +10,20 @@ class Lockin():
             'top': "USB0::0xB506::0x2000::004169", # Currently SR860, but can be changed to "GPIB0::9" for SR830
             'bottom': "USB0::0xB506::0x2000::004642" # Currently SR860, but can be changed to "GPIB0::8" for SR830
         }
+        try:
+            with open("lockin_ports.ini", "r") as f:
+                config = configparser.ConfigParser()
+                config.read_file(f)
+                try:
+                    name_dict['top'] = config['DEFAULT']['lockin_top']
+                except:
+                    pass
+                try:
+                    name_dict['bottom'] = config['DEFAULT']['lockin_bottom']
+                except:
+                    pass
+        except:
+            pass
         try:
             rm = visa.ResourceManager()
             tempstr = name_dict[top_or_bottom]
