@@ -13,10 +13,14 @@ from time import sleep
 
 
 class NDFilter:
-    def __init__(self, serial_number=55254094):
+    def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
         try:
+            if id_string_var:
+                serial_number = int(id_string_var.get())
+            else:
+                serial_number = 27264119
             self.motor = apt.Motor(serial_number)
             self.valid = True
         except Exception as e:
@@ -33,7 +37,7 @@ class NDFilter:
 
 
 class NDFilterSimulator:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.valid = True
         self.error_message = ""
         self.angle = 0

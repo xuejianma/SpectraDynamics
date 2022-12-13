@@ -9,12 +9,16 @@ from pywinauto.application import Application
 
 
 class Monochromator:
-    def __init__(self):
+    def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
         try:
+            if id_string_var:
+                id_str = id_string_var.get()
+            else:
+                id_str = "SciSpec 9.3.0.0"
             app = Application(backend="uia").connect(
-                title="SciSpec 9.3.0.0", timeout=1)
+                title=id_str, timeout=1)
             self.edit_box = app.top_window().child_window(
                 auto_id="TB_input", control_type="Edit")
             self.valid = True
@@ -33,7 +37,7 @@ class Monochromator:
 
 
 class MonochromatorSimulator:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.valid = True
         self.error_message = ""
         self.wavelength = 516

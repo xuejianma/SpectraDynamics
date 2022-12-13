@@ -4,15 +4,19 @@ from pyvisa import ResourceManager
 
 
 class Oscilloscope():
-    def __init__(self):
+    def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
         try:
+            if id_string_var:
+                id_str = id_string_var.get()
+            else:
+                id_str = "DS6D150100004"
             self.rm = ResourceManager()
             self.instrument = None
             usb_list = self.rm.list_resources()
             for item in usb_list:
-                if "DS6D150100004" in item:
+                if id_str in item:
                     self.instrument = self.rm.open_resource(item)
                     break
             self.valid = True
@@ -66,12 +70,11 @@ class Oscilloscope():
             self.y_scale = float(self.instrument.query(':CHAN1:SCAL?'))
             return np.linspace(0, self.x_scale * 14, len(rawdata_ch1), endpoint=False), (np.asarray(rawdata_ch1) - 128) * (self.y_scale/(256/8)), (np.asarray(rawdata_ch2) - 128) * (self.y_scale/(256/8))
         except Exception as e:
-            print(e)
             self.instrument = None
 
 
 class OscilloscopeSimulator:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.valid = True
         self.error_message = ""
 

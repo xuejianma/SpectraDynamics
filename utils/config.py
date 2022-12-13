@@ -18,6 +18,14 @@ class Variables:
     """
 
     def initialize_vars(self):
+        self.id_oscilloscope = tk.StringVar(value='DS6D150100004')
+        self.id_monochromator = tk.StringVar(value='SciSpec 9.3.0.0')
+        self.id_actuator = tk.StringVar(value=27264119)
+        self.id_ndfilter = tk.StringVar(value=55254094)
+        self.id_powermeter = tk.StringVar(value='P0016683')
+        self.id_cwcontroller = tk.StringVar(value='M00460823')
+        self.id_lockin_top = tk.StringVar(value='USB0::0xB506::0x2000::004169')
+        self.id_lockin_bottom = tk.StringVar(value='USB0::0xB506::0x2000::004642')
         self.var_entry_lifetime_directory = tk.StringVar()
         self.var_entry_lifetime_filename = tk.StringVar()
         self.var_spinbox_lifetime_num = tk.StringVar(value=20)
@@ -77,16 +85,14 @@ class Instances:
     """
 
     def initialize_instances(self):
-        self.oscilloscope = Oscilloscope() if not TEST_MODE else OscilloscopeSimulator()
-        self.ndfilter = NDFilter() if not TEST_MODE else NDFilterSimulator()
-        self.powermeter = Powermeter() if not TEST_MODE else PowermeterSimulator()
-        self.monochromator = Monochromator() if not TEST_MODE else MonochromatorSimulator()
-        self.actuator = Actuator() if not TEST_MODE else ActuatorSimulator()
-        self.cwcontroller = CWController() if not TEST_MODE else CWControllerSimulator()
-        self.lockin_top = Lockin(
-            'top') if not TEST_MODE else LockinSimulator('top')
-        self.lockin_bottom = Lockin(
-            'bottom') if not TEST_MODE else LockinSimulator('bottom')
+        self.oscilloscope = Oscilloscope(VARIABLES.id_oscilloscope) if not TEST_MODE else OscilloscopeSimulator()
+        self.ndfilter = NDFilter(VARIABLES.id_ndfilter) if not TEST_MODE else NDFilterSimulator()
+        self.powermeter = Powermeter(VARIABLES.id_powermeter) if not TEST_MODE else PowermeterSimulator()
+        self.monochromator = Monochromator(VARIABLES.id_monochromator) if not TEST_MODE else MonochromatorSimulator()
+        self.actuator = Actuator(VARIABLES.id_actuator) if not TEST_MODE else ActuatorSimulator()
+        self.cwcontroller = CWController(VARIABLES.id_cwcontroller) if not TEST_MODE else CWControllerSimulator()
+        self.lockin_top = Lockin(VARIABLES.id_lockin_top) if not TEST_MODE else LockinSimulator('top')
+        self.lockin_bottom = Lockin(VARIABLES.id_lockin_bottom) if not TEST_MODE else LockinSimulator('bottom')
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 
@@ -146,11 +152,11 @@ class Default:
 
 class Logger:
     def initialize_status(self):
-        VARIABLES.var_logger_status.set("Ready.")
+        VARIABLES.var_logger_status.set("Standby.")
 
     def log(self, msg):
         VARIABLES.var_logger_status.set(
-            f"{msg} [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]")
+            f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
 
     def reset(self):
         self.initialize_status()

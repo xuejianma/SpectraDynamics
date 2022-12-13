@@ -49,7 +49,7 @@ class SetpointConversion:
         self.text_setpoint_power.pack(side="left", anchor="w", padx=10, pady=10)
         self.text_setpoint_power.bind("<Key>", lambda e: "break")
         self.scrollbar = ttk.Scrollbar(frame_2, orient="vertical", command=self.text_setpoint_power.yview)
-        self.scrollbar.pack(side="right", fill="y")
+        self.scrollbar.pack(side="left", fill="y")
         self.text_setpoint_power.configure(yscrollcommand=self.scrollbar.set)
         return frame
     def load(self):

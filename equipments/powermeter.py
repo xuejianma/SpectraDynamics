@@ -5,18 +5,22 @@ from threading import Lock
 
 class Powermeter:
 
-    def __init__(self):
+    def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
         self.max_period = 0.4
         self.num = 50
         self.lock = Lock()
         try:
+            if id_string_var:
+                id_str = id_string_var.get()
+            else:
+                id_str = "P0016683"
             self.rm = ResourceManager()
             self.instrument = None
             usb_list = self.rm.list_resources()
             for item in usb_list:
-                if "P0016683" in item:
+                if id_str in item:
                     self.instrument = self.rm.open_resource(item)
                     break
             self.valid = True
@@ -48,7 +52,7 @@ class Powermeter:
 
 
 class PowermeterSimulator:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.valid = True
         self.error_message = ""
         self.max_period = 0.4

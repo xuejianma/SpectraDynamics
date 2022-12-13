@@ -1,33 +1,17 @@
-import configparser
 import pyvisa as visa
 
 
 class Lockin():
-    def __init__(self, top_or_bottom):
+    def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
-        name_dict = {
-            'top': "USB0::0xB506::0x2000::004169", # Currently SR860, but can be changed to "GPIB0::9" for SR830
-            'bottom': "USB0::0xB506::0x2000::004642" # Currently SR860, but can be changed to "GPIB0::8" for SR830
-        }
         try:
-            with open("lockin_ports.ini", "r") as f:
-                config = configparser.ConfigParser()
-                config.read_file(f)
-                try:
-                    name_dict['top'] = config['DEFAULT']['lockin_top']
-                except:
-                    pass
-                try:
-                    name_dict['bottom'] = config['DEFAULT']['lockin_bottom']
-                except:
-                    pass
-        except:
-            pass
-        try:
+            if id_string_var:
+                id_str = id_string_var.get()
+            else:
+                id_str = "USB0::0xB506::0x2000::004169"
             rm = visa.ResourceManager()
-            tempstr = name_dict[top_or_bottom]
-            self.instrument = rm.open_resource(tempstr)
+            self.instrument = rm.open_resource(id_str)
             self.model = 'SR830' if 'SR830' in self.get_identification() else 'SR860'
             self.valid = True
             if self.instrument is None:
@@ -70,7 +54,7 @@ class Lockin():
         return ret
 
 class LockinSimulator():
-    def __init__(self, top_or_bottom):
+    def __init__(self, *args, **kwargs):
         self.valid = True
         self.error_message = ""
 

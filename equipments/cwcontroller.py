@@ -2,15 +2,19 @@ from pyvisa import ResourceManager
 
 
 class CWController:
-    def __init__(self):
+    def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
         try:
+            if id_string_var:
+                id_str = id_string_var.get()
+            else:
+                id_str = "M00460823"
             self.rm = ResourceManager()
             self.instrument = None
             usb_list = self.rm.list_resources()
             for item in usb_list:
-                if "M00460823" in item:
+                if id_str in item:
                     self.instrument = self.rm.open_resource(item)
                     break
             self.valid = True
@@ -40,7 +44,7 @@ class CWController:
         return 'ON' if '1' in self.instrument.query("OUTP?") else 'OFF'
 
 class CWControllerSimulator:
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.valid = True
         self.error_message = ""
         self.current_setpoint = 0
