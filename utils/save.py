@@ -30,7 +30,7 @@ class Save:
         label_directory = ttk.Label(frame_1, text="Directory: ")
         label_directory.pack(side="left")
         entry_directory = ttk.Entry(
-            frame_1, textvariable=self.var_directory, width=40)
+            frame_1, textvariable=self.var_directory, width=30)
         entry_directory.pack(side="left")
         button_directory = ttk.Button(
             frame_1, text="Select Directory...", command=self.select_directory)
@@ -38,7 +38,7 @@ class Save:
         label_filename = ttk.Label(frame_2, text="Filename: ")
         label_filename.pack(side="left")
         entry_filename = ttk.Entry(
-            frame_2, textvariable=self.var_filename, width=40)
+            frame_2, textvariable=self.var_filename, width=30)
         entry_filename.pack(side="left")
         button = ttk.Button(frame_2, text="Save", command=self.save)
         button.pack(side="left")

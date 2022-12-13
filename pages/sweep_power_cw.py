@@ -63,9 +63,9 @@ class SweepPowerCW:
         self.checkbutton_load_conversion.pack(side="top", anchor="w")
         self.save = Save(frame_1_3, VARIABLES.var_entry_sweep_power_cw_directory, VARIABLES.var_entry_sweep_power_cw_filename)
         ttk.Label(frame_2_1, text="Ch1 (V-uW)").pack(side="top")
-        self.plot_lockin_top = Plot(frame_2_1, figsize=(12, 8))
+        self.plot_lockin_top = Plot(frame_2_1, figsize=(10, 8))
         ttk.Label(frame_2_2, text="Ch2 (V-uW)").pack(side="top")
-        self.plot_lockin_bottom = Plot(frame_2_2, figsize=(12, 8))
+        self.plot_lockin_bottom = Plot(frame_2_2, figsize=(10, 8))
         SweepPowerCWTask(frame_1_3, self)
         return frame
     
