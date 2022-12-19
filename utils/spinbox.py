@@ -25,3 +25,15 @@ class Spinbox(ttk.Spinbox):
         if self.to is not None and new_value > self.to:
             return False
         return True
+    
+    def config(self, cnf=None, **kw):
+        if cnf is None:
+            cnf = {}
+        cnf = cnf.copy()
+        cnf.update(kw)
+        print(cnf)
+        if 'from_' in cnf:
+            self.from_ = float(cnf.get('from_'))
+        if 'to' in cnf:
+            self.to = float(cnf.get('to'))
+        super().config(cnf)

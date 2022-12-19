@@ -66,7 +66,7 @@ class Variables:
         self.var_entry_cwcontroller_status = tk.StringVar(value='OFF')
         self.var_entry_cwcontroller_curr_setpoint = tk.StringVar(value=0)
         self.var_spinbox_cwcontroller_target_setpoint = tk.StringVar(value=0)
-        self.var_spinbox_cwcontroller_setpoint_limit = tk.StringVar(value=100)
+        self.var_spinbox_cwcontroller_setpoint_limit = tk.StringVar(value=40)
         self.var_spinbox_cwcontroller_start_setpoint = tk.StringVar(value=0)
         self.var_spinbox_cwcontroller_end_setpoint = tk.StringVar(value=10)
         self.var_spinbox_cwcontroller_step_setpoint = tk.StringVar(value=0.1)

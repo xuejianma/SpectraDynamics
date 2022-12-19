@@ -40,6 +40,10 @@ class SweepPowerCW:
         self.spinbox_target_setpoint = Spinbox(frame_1_1, from_=0, to=float('inf'), increment=0.1, textvariable=VARIABLES.var_spinbox_cwcontroller_target_setpoint)
         self.spinbox_target_setpoint.pack(side="top", anchor="w", padx=10)
         ttk.Button(frame_1_1, text="Set", command=self.on_set_current_setpoint).pack(side="top", anchor="w", padx=10)
+        ttk.Label(frame_1_1, text="Current setpoint max limit (mA)").pack(side="top", anchor="w", padx=10)
+        self.spinbox_setpoint_limit = ttk.Spinbox(frame_1_1, from_=0, to=float('inf'), textvariable=VARIABLES.var_spinbox_cwcontroller_setpoint_limit)
+        self.spinbox_setpoint_limit.pack(side="top", anchor="w", padx=10)
+        VARIABLES.var_spinbox_cwcontroller_setpoint_limit.trace_add("write", lambda val, index, mode: self.on_set_current_setpoint_limit())
         ttk.Label(frame_1_2, text="Start Current Setpoint (mA): ").pack(side="top", anchor="w", padx=10)
         ttk.Label(frame_1_2, text="Recommended Safe Range: 0 - 40mA", font="TkDefaultFont 8").pack(side="top", anchor="w", padx=10)
         self.spinbox_start_setpoint = Spinbox(frame_1_2, from_=0, to=float('inf'), textvariable=VARIABLES.var_spinbox_cwcontroller_start_setpoint)
@@ -80,6 +84,9 @@ class SweepPowerCW:
     def on_set_current_setpoint(self):
         INSTANCES.cwcontroller.set_current_setpoint(VARIABLES.var_spinbox_cwcontroller_target_setpoint.get())
         VARIABLES.var_entry_cwcontroller_curr_setpoint.set(INSTANCES.cwcontroller.get_current_setpoint_mA())
+    
+    def on_set_current_setpoint_limit(self):
+        self.spinbox_target_setpoint.config(to=VARIABLES.var_spinbox_cwcontroller_setpoint_limit.get())
 
 class SweepPowerCWTask(Task):
     def __init__(self, parent, page: SweepPowerCW):
