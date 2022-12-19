@@ -23,6 +23,7 @@ class SweepWavelength:
                          VARIABLES.var_entry_sweep_wavelength_filename,
                          substitute_dict={})
         SweepWavelengthTask(frame_1_7, self)
+        self.on_change_for_photon_flux_fixed()
 
     def set_frame(self, parent):
         frame = ttk.Frame(parent)
@@ -100,16 +101,24 @@ class SweepWavelength:
         self.spinbox_sweep_start_wavelength = Spinbox(frame_1_4, from_=0, to=float(
             "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_sweep_start_wavelength)
         self.spinbox_sweep_start_wavelength.pack(side="top", anchor="w")
+        VARIABLES.var_spinbox_sweep_start_wavelength.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         ttk.Label(frame_1_4, text="Sweep End Wavelength (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_end_wavelength = Spinbox(frame_1_4, from_=0, to=float(
             "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_sweep_end_wavelength)
         self.spinbox_sweep_end_wavelength.pack(side="top", anchor="w")
+        VARIABLES.var_spinbox_sweep_end_wavelength.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         ttk.Label(frame_1_4, text="Sweep Step Size (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_step_size = Spinbox(frame_1_4, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_spinbox_sweep_step_size)
         self.spinbox_sweep_step_size.pack(side="top", anchor="w")
+        self.checkbutton_photon_flux_fixed = ttk.Checkbutton(
+            frame_1_4, text="Photon Flux Fixed\n(instead of power fixed)", variable=VARIABLES.var_checkbutton_photon_flux_fixed)
+        self.checkbutton_photon_flux_fixed.pack(side="top", anchor="w")
+        VARIABLES.var_checkbutton_photon_flux_fixed.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        self.label_photon_flux_fixed = ttk.Label(frame_1_4, text="\n\n")
+        self.label_photon_flux_fixed.pack(side="top", anchor="w")
         ttk.Label(frame_1_5, text="Current Power (rel. uW): ").pack(
             side="top", anchor="w")
         ttk.Entry(frame_1_5, state="readonly", textvariable=VARIABLES.var_entry_curr_power).pack(
@@ -130,6 +139,12 @@ class SweepWavelength:
         self.spinbox_target_power = Spinbox(frame_1_5, from_=0, to=float("inf"), increment=0.1,
                                             textvariable=VARIABLES.var_spinbox_sweep_target_power)
         self.spinbox_target_power.pack(side="top", anchor="w")
+        VARIABLES.var_spinbox_sweep_target_power.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        ttk.Label(frame_1_5, text="Wavelength at target power (nm)\n(for fixed photon flux mode)").pack(side="top", anchor="w")
+        self.spinbox_wavelength_at_target_power = Spinbox(frame_1_5, from_=0, to=float("inf"), increment=0.1,
+                textvariable=VARIABLES.var_spinbox_wavelength_at_target_power)
+        self.spinbox_wavelength_at_target_power.pack(side="top", anchor="w")
+        VARIABLES.var_spinbox_wavelength_at_target_power.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         self.label_oscilloscope_wait_time = ttk.Label(
             frame_1_6, text="Oscilloscope wait time (s): ")
         self.label_oscilloscope_wait_time.pack(side="top", anchor="w")
@@ -167,6 +182,34 @@ class SweepWavelength:
             self.turn_off_power_reading()
         else:
             self.turn_on_power_reading()
+    
+    def on_change_for_photon_flux_fixed(self):
+        if VARIABLES.var_checkbutton_photon_flux_fixed.get():
+            self.spinbox_wavelength_at_target_power.config(state="normal")
+            target_wavelength = float(VARIABLES.var_spinbox_wavelength_at_target_power.get())
+            start_wavelength = float(VARIABLES.var_spinbox_sweep_start_wavelength.get())
+            end_wavelength = float(VARIABLES.var_spinbox_sweep_end_wavelength.get())
+            target_power = round(float(VARIABLES.var_spinbox_sweep_target_power.get()), 6)
+            start_power = round(target_power * target_wavelength / start_wavelength, 6)
+            end_power = round(target_power * target_wavelength / end_wavelength, 6)
+            pair_to_display = []
+            pair_to_display.append((start_wavelength, start_power))
+            if (target_wavelength, target_power) not in pair_to_display:
+                pair_to_display.append((target_wavelength, target_power))
+            if (end_wavelength, end_power) not in pair_to_display:
+                pair_to_display.append((end_wavelength, end_power))
+            pair_to_display.sort(key=lambda x: x[0])
+            text_to_display = ""
+            for pair in pair_to_display:
+                text_to_display += str(pair[0]) + "nm: " + str(pair[1]) + "uW\n"
+            if len(pair_to_display) == 1:
+                text_to_display += "\n\n"
+            elif len(pair_to_display) == 2:
+                text_to_display += "\n"
+            self.label_photon_flux_fixed.config(text=text_to_display[:-1])
+        else:
+            self.spinbox_wavelength_at_target_power.config(state="disabled")
+            self.label_photon_flux_fixed.config(text="\n\n")
 
     def turn_off_power_reading(self):
         self.button_power.config(state="disabled")
@@ -376,9 +419,11 @@ class SweepWavelengthTask(Task):
                                self.page.spinbox_sweep_start_wavelength,
                                self.page.spinbox_sweep_end_wavelength,
                                self.page.spinbox_sweep_step_size,
+                               self.page.checkbutton_photon_flux_fixed,
                                self.page.button_power,
                                self.page.button_set_background_power,
                                self.page.spinbox_target_power,
+                               self.page.spinbox_wavelength_at_target_power,
                                self.page.spinbox_sweep_lifetime_num,
                                self.page.spinbox_sweep_actuator_explore_range_negative,
                                self.page.spinbox_sweep_actuator_explore_range_positive,
@@ -436,7 +481,7 @@ class SweepWavelengthTask(Task):
         self.page.set_actuator_position_task.task_loop()
         # wait for var_entry_curr_power to update before getting power
         sleep(INSTANCES.powermeter.max_period + 0.2)
-        self.page.set_background_power()
+        UTILS.set_background_power()
         VARIABLES.var_spinbox_target_actuator_position.set(
             round(curr_actuator_position, 6))
         self.page.set_actuator_position_task.task_loop()
@@ -486,12 +531,16 @@ class SweepWavelengthTask(Task):
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power by NDFilter...")
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
+        if VARIABLES.var_checkbutton_photon_flux_fixed.get():
+            target_power = target_power * float(VARIABLES.var_spinbox_wavelength_at_target_power.get()) / self.curr_wavelength
         if curr_power < target_power:
             LOGGER.log(
                 "[Sweep Paused] Current max power is lower than target power. Please adjust actuator position to reach large enough max power before resuming.")
             if self.status == RUNNING:
                 self.pause()
         else:
+            LOGGER.log(
+                "[Sweeping] Finding target power {}uW by NDFilter..".format(round(target_power, 6)))
             delta = float('inf')
             while abs(target_power - curr_power) > 0.005 * target_power and abs(delta) > 0.005:
                 if self.check_stopping():

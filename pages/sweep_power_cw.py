@@ -59,7 +59,7 @@ class SweepPowerCW:
         self.spinbox_background_power.pack(side="top", anchor="w")
         ttk.Label(frame_1_3, text="Wait time after each setpoint change (s):").pack(side="top", anchor="w")
         Spinbox(frame_1_3, from_=0, to=float("inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_cwcontroller_wait_time).pack(side="top", anchor="w")
-        self.checkbutton_load_conversion = ttk.Checkbutton(frame_1_3, text="Load power from Setpoint Conversion page (instead of new powermeter measurement).", variable=VARIABLES.var_checkbutton_checkbutton_load_conversion)
+        self.checkbutton_load_conversion = ttk.Checkbutton(frame_1_3, text="Load power from Setpoint Conversion page (instead of new powermeter measurement).", variable=VARIABLES.var_checkbutton_load_conversion)
         self.checkbutton_load_conversion.pack(side="top", anchor="w")
         self.save = Save(frame_1_3, VARIABLES.var_entry_sweep_power_cw_directory, VARIABLES.var_entry_sweep_power_cw_filename)
         ttk.Label(frame_2_1, text="Ch1 (V-uW)").pack(side="top")
@@ -99,7 +99,7 @@ class SweepPowerCWTask(Task):
         INSTANCES.cwcontroller.set_current_setpoint(self.curr_setpoint)
         sleep(float(VARIABLES.var_spinbox_cwcontroller_wait_time.get()))
         VARIABLES.var_entry_cwcontroller_curr_setpoint.set(round(INSTANCES.cwcontroller.get_current_setpoint_mA(), 6))
-        if VARIABLES.var_checkbutton_checkbutton_load_conversion.get():
+        if VARIABLES.var_checkbutton_load_conversion.get():
             self.curr_power = GLOBALS.powers_converted_from_setpoints[GLOBALS.setpoints_to_convert.index(self.curr_setpoint)]
         else:
             sleep(INSTANCES.powermeter.max_period + 0.2)

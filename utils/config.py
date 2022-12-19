@@ -9,7 +9,7 @@ from equipments.cwcontroller import CWController, CWControllerSimulator
 from equipments.lockin import Lockin, LockinSimulator
 from datetime import datetime
 
-TEST_MODE = False
+TEST_MODE = True
 
 
 class Variables:
@@ -41,6 +41,8 @@ class Variables:
         self.var_spinbox_sweep_start_wavelength = tk.StringVar(value=0)
         self.var_spinbox_sweep_end_wavelength = tk.StringVar(value=0)
         self.var_spinbox_sweep_step_size = tk.StringVar(value=0)
+        self.var_checkbutton_photon_flux_fixed = tk.IntVar(value=0)
+        self.var_spinbox_wavelength_at_target_power = tk.StringVar(value=0)
         self.var_spinbox_sweep_target_power = tk.StringVar(value=0)
         self.var_spinbox_sweep_lifetime_num = tk.StringVar(value=0)
         self.var_spinbox_sweep_actuator_explore_range_negative = tk.StringVar(
@@ -57,7 +59,7 @@ class Variables:
         self.var_spinbox_step_angle = tk.StringVar(value=1)
         self.var_spinbox_sweep_power_num = tk.StringVar(value=10)
         self.var_spinbox_sweep_power_wait_time = tk.StringVar(value=6)
-        self.var_checkbutton_checkbutton_load_conversion = tk.IntVar(value=0)
+        self.var_checkbutton_load_conversion = tk.IntVar(value=0)
         self.var_entry_sweep_power_directory = tk.StringVar()
         self.var_entry_sweep_power_filename = tk.StringVar()
         self.var_logger_status = tk.StringVar()
