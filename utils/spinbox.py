@@ -31,7 +31,6 @@ class Spinbox(ttk.Spinbox):
             cnf = {}
         cnf = cnf.copy()
         cnf.update(kw)
-        print(cnf)
         if 'from_' in cnf:
             self.from_ = float(cnf.get('from_'))
         if 'to' in cnf:
