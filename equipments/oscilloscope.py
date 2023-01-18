@@ -28,6 +28,7 @@ class Oscilloscope():
             self.error_message = e
         self.x_scale = None
         self.y_scale = None
+        self.num_div = 14 if "DS6" in id_str else 10
 
     def start(self):
         self.instrument.write(":RUN")
@@ -70,8 +71,10 @@ class Oscilloscope():
             sleep(wt)
             self.x_scale = float(self.instrument.query(':TIM:SCAL?'))
             sleep(wt)
-            self.y_scale = float(self.instrument.query(':CHAN1:SCAL?'))
-            return np.linspace(0, self.x_scale * 14, len(rawdata_ch1), endpoint=False), (np.asarray(rawdata_ch1) - 128) * (self.y_scale/(256/8)), (np.asarray(rawdata_ch2) - 128) * (self.y_scale/(256/8))
+            self.y_scale_1 = float(self.instrument.query(':CHAN1:SCAL?'))
+            sleep(wt)
+            self.y_scale_2 = float(self.instrument.query(':CHAN2:SCAL?'))
+            return np.linspace(0, self.x_scale * self.num_div, len(rawdata_ch1), endpoint=False), (np.asarray(rawdata_ch1) - 128) * (self.y_scale_1/(256/8)), (np.asarray(rawdata_ch2) - 128) * (self.y_scale_2/(256/8))
         except Exception as e:
             self.instrument = None
 
