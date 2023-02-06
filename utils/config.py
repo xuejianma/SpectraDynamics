@@ -36,6 +36,7 @@ class Variables:
         self.var_spinbox_target_actuator_position = tk.StringVar(value=0)
         self.var_entry_curr_angle = tk.StringVar(value=0)
         self.var_spinbox_target_angle = tk.StringVar(value=0)
+        self.var_spinbox_ndfilter_speed = tk.StringVar(value=1)
         self.var_entry_curr_power = tk.StringVar(value=0)
         self.var_spinbox_background_power = tk.StringVar(value=0)
         self.var_spinbox_sweep_start_wavelength = tk.StringVar(value=0)

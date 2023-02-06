@@ -96,6 +96,10 @@ class SweepWavelength:
         self.button_set_angle.pack(side="top", anchor="w")
         ttk.Label(frame_1_3, text="Note: Make sure power decreases\nwith NDFilter angle.",
                   font="TkDefaultFont 8").pack(side="top", anchor="w")
+        ttk.Label(frame_1_3, text="NDFilter Spin Relative Speed (default 1.0)").pack(
+            side="top", anchor="w")
+        Spinbox(frame_1_3, from_=0, to=float("inf"), increment=1,
+                textvariable=VARIABLES.var_spinbox_ndfilter_speed).pack(side="top", anchor="w")
         ttk.Label(frame_1_4, text="Sweep Start Wavelength (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_start_wavelength = Spinbox(frame_1_4, from_=0, to=float(
@@ -546,6 +550,7 @@ class SweepWavelengthTask(Task):
                 if self.check_stopping():
                     return
                 delta = -0.5 * (target_power - curr_power) / curr_power * 10
+                delta = -0.5 * (target_power - curr_power) / curr_power * 10 * float(VARIABLES.var_spinbox_ndfilter_speed.get())
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
                 VARIABLES.var_spinbox_target_angle.set(
