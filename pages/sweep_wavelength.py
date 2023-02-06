@@ -287,13 +287,18 @@ class ReadPowerTask():
                             round(power - background_power, 6))
                     break
                 except Exception as e:
-                    LOGGER.log(e)
+                    if count == max_try - 2:
+                        print(e)
+                        LOGGER.log(e)
+                        INSTANCES.powermeter.__init__(id_string_var=VARIABLES.id_powermeter.get())
+                        print('reinit powermeter')
                     count += 1
                     error = e
                     sleep(0.1)
             if count == max_try:
                 raise error
         except Exception as e:
+            print(e)
             LOGGER.log(e)
             raise e
         finally:
@@ -531,8 +536,6 @@ class SweepWavelengthTask(Task):
     def find_target_power_by_ndfilter(self):
         if self.check_stopping():
             return
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power by NDFilter...")
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
         if VARIABLES.var_checkbutton_photon_flux_fixed.get():
@@ -544,12 +547,11 @@ class SweepWavelengthTask(Task):
                 self.pause()
         else:
             LOGGER.log(
-                "[Sweeping] Finding target power {}uW by NDFilter..".format(round(target_power, 6)))
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power {round(target_power, 6)}uW by NDFilter. Background power is {round(float(VARIABLES.var_spinbox_background_power.get()), 6)}uW.")
             delta = float('inf')
             while abs(target_power - curr_power) > 0.005 * target_power and abs(delta) > 0.005:
                 if self.check_stopping():
                     return
-                delta = -0.5 * (target_power - curr_power) / curr_power * 10
                 delta = -0.5 * (target_power - curr_power) / curr_power * 10 * float(VARIABLES.var_spinbox_ndfilter_speed.get())
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
