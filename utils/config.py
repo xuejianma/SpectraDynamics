@@ -157,8 +157,15 @@ class Logger:
         VARIABLES.var_logger_status.set("Standby.")
 
     def log(self, msg):
-        VARIABLES.var_logger_status.set(
-            f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
+        message = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {msg}"
+        VARIABLES.var_logger_status.set(message)
+        with open("log.txt", "a") as f:
+            f.write(message + "\n")
+        with open("log.txt", "r") as f:
+            lines = f.readlines()
+        if len(lines) > 1000:
+            with open("log.txt", "w") as f:
+                f.writelines(lines[-1000:])
 
     def reset(self):
         self.initialize_status()
