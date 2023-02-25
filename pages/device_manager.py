@@ -28,6 +28,12 @@ class DeviceManager:
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.text_resources.yview)
         scrollbar.pack(side="left", fill="y")
         self.text_resources.configure(yscrollcommand=scrollbar.set)
+        ttk.Label(frame, text="Notification APP Token:").pack(side="top", anchor="w", padx=(100, 0), pady=(30, 0))
+        ttk.Entry(frame, textvariable=VARIABLES.var_entry_notification_app_token, width=50).pack(side="top", anchor="w", padx=(100, 0), pady=(0, 0))
+        ttk.Label(frame, text="Notification User Key:").pack(side="top", anchor="w", padx=(100, 0), pady=(30, 0))
+        ttk.Entry(frame, textvariable=VARIABLES.var_entry_notification_user_key, width=50).pack(side="top", anchor="w", padx=(100, 0), pady=(0, 0))
+        from utils.config import UTILS
+        ttk.Button(frame, text="Test Notification", command=lambda: UTILS.push_notification("Hello World!")).pack(side="top", anchor="w", padx=(100, 0), pady=(30, 0))
         return frame
     
     def get_resources(self):

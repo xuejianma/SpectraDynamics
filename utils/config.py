@@ -80,6 +80,8 @@ class Variables:
         self.var_spinbox_setpoint_conversion_step_setpoint = tk.StringVar(value=0.1)
         self.var_entry_setpoint_conversion_directory = tk.StringVar()
         self.var_entry_setpoint_conversion_filename = tk.StringVar()
+        self.var_entry_notification_app_token = tk.StringVar()
+        self.var_entry_notification_user_key = tk.StringVar()
 
 
 class Instances:
@@ -177,6 +179,19 @@ class Utils:
         VARIABLES.var_spinbox_background_power.set(
             round(float(VARIABLES.var_entry_curr_power.get()) +
                   float(VARIABLES.var_spinbox_background_power.get()), 6))
+    
+    def push_notification(self, message):
+        import http.client, urllib
+        conn = http.client.HTTPSConnection("api.pushover.net:443")
+        conn.request("POST", "/1/messages.json",
+        urllib.parse.urlencode({
+            "token": str(VARIABLES.var_entry_notification_app_token.get()),
+            "user": str(VARIABLES.var_entry_notification_user_key.get()),
+            "message": str(message),
+        }), { "Content-type": "application/x-www-form-urlencoded" })
+        response = conn.getresponse()
+        print("Sending Notification to Pushover: ", response.status, response.reason, response.read())
+        conn.close()
 
 class Globals:
     """

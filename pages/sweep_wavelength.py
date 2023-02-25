@@ -457,6 +457,10 @@ class SweepWavelengthTask(Task):
         self.measure_lifetime()
         if self.check_stopping():
             return
+        if not self.check_devices_valid():
+            self.pause()
+            UTILS.push_notification("Paused due to invalid device(s).")
+            return
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
             self.curr_wavelength += float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
@@ -493,6 +497,10 @@ class SweepWavelengthTask(Task):
         UTILS.set_background_power()
         VARIABLES.var_spinbox_target_actuator_position.set(
             round(curr_actuator_position, 6))
+        if float(VARIABLES.var_spinbox_background_power.get()) > 0.1:
+            self.pause()
+            UTILS.push_notification("Paused due to large background power.")
+            return
         self.page.set_actuator_position_task.task_loop()
 
     def find_max_power_by_actuator(self):
@@ -545,6 +553,7 @@ class SweepWavelengthTask(Task):
                 "[Sweep Paused] Current max power is lower than target power. Please adjust actuator position to reach large enough max power before resuming.")
             if self.status == RUNNING:
                 self.pause()
+                UTILS.push_notification("Paused due to low max power.")
         else:
             LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power {round(target_power, 6)}uW by NDFilter. Background power is {round(float(VARIABLES.var_spinbox_background_power.get()), 6)}uW.")
@@ -616,9 +625,12 @@ class SweepWavelengthTask(Task):
         self.page.save.data_dict["data"].append(data_ch2)
         self.page.save.save(update_datetime=False)
 
+    def check_devices_valid(self):
+        return INSTANCES.oscilloscope.valid and INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
+            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid
+
     def start(self):
-        if not INSTANCES.oscilloscope.valid or not INSTANCES.monochromator.valid or not INSTANCES.actuator.valid \
-                or not INSTANCES.ndfilter.valid or not INSTANCES.powermeter.valid:
+        if not self.check_devices_valid():
             LOGGER.log(
                 "Not all devices are connected! Please connect all devices in Device Manager page before starting a sweep.")
             return
@@ -669,3 +681,7 @@ class SweepWavelengthTask(Task):
             external_button_control.external_button_control = False
         self.page.save.reset()
         LOGGER.reset()
+    
+    def after_complete(self):
+        super().after_complete()
+        UTILS.push_notification("Sweep completed!")
