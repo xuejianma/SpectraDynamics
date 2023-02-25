@@ -273,32 +273,25 @@ class ReadPowerTask():
 
     def task_loop(self):
         try:
-            count = 0
-            max_try = 10
-            error = None
             # sometimes the powermeter will have VisaIOError and rerunning the command will fix it.
-            while count < max_try:
-                try:
-                    while self.is_running:
+            while self.is_running:
+                count = 0
+                max_try = 10
+                error = None
+                while count < max_try:
+                    try:
                         power = INSTANCES.powermeter.get_power_uW()
-                        background_power = float(
-                            VARIABLES.var_spinbox_background_power.get())
-                        VARIABLES.var_entry_curr_power.set(
-                            round(power - background_power, 6))
-                    break
-                except Exception as e:
-                    if count == max_try - 2:
-                        print(e)
-                        LOGGER.log(e)
-                        INSTANCES.powermeter.__init__(id_string_var=VARIABLES.id_powermeter.get())
-                        print('reinit powermeter')
-                    count += 1
-                    error = e
-                    sleep(0.1)
-            if count == max_try:
-                raise error
+                        break
+                    except Exception as e:
+                        error = e
+                        count += 1
+                if count == max_try:
+                    raise error
+                background_power = float(
+                    VARIABLES.var_spinbox_background_power.get())
+                VARIABLES.var_entry_curr_power.set(
+                    round(power - background_power, 6))
         except Exception as e:
-            print(e)
             LOGGER.log(e)
             raise e
         finally:
@@ -334,8 +327,8 @@ class SetWavelengthTask():
             LOGGER.log(e)
             raise e
         finally:
-            if not self.external_button_control:
-                self.button_set_wavelength.config(state="normal")
+            # if not self.external_button_control:
+            #     self.button_set_wavelength.config(state="normal")
             self.is_running = False
         try:
             INSTANCES.monochromator.set_wavelength(
