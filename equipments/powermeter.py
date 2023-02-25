@@ -36,15 +36,19 @@ class Powermeter:
 
     def get_power(self):
         self.lock.acquire()
-        power_sum = 0
-        t1 = time()
-        for _ in range(self.num):
-            power_sum += float(self.instrument.query('Measure:Scalar:POWer?'))
-            sleep(1e-6)
-        ret = power_sum / self.num
-        t2 = time()
-        self.num = int(self.num * (self.max_period / (t2 - t1)))
-        self.lock.release()
+        try:
+            power_sum = 0
+            t1 = time()
+            for _ in range(self.num):
+                power_sum += float(self.instrument.query('Measure:Scalar:POWer?'))
+                sleep(1e-6)
+            ret = power_sum / self.num
+            t2 = time()
+            self.num = int(self.num * (self.max_period / (t2 - t1)))
+        except Exception as e:
+            raise e
+        finally:
+            self.lock.release()
         return ret
 
     def get_power_uW(self):
