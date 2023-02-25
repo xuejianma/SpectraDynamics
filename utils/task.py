@@ -103,6 +103,7 @@ class Task:
         if self.status == RUNNING:
             self.reset()
             self.label_remaining.config(text="Done!")
+            self.after_complete()
         elif self.status == TERMINATING:
             self.reset()
         elif self.status == PAUSING:
@@ -134,6 +135,12 @@ class Task:
         self.button_start.config(text="Start")
         self.progress_bar["value"] = 0
         self.label_remaining.config(text=self.get_remaining_time())
+    
+    def after_complete(self):
+        """
+        Placeholder for user-defined function to be run after the task is completed normally.
+        """
+        pass
 
     def pause(self):
         """
