@@ -11,7 +11,7 @@ import numpy as np
 
 class SweepWavelength:
     def __init__(self, parent) -> None:
-        self.frame, frame_1_7 = self.set_frame(parent)
+        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2 = self.set_frame(parent)
         self.set_angle_task = SetAngleTask(self.button_set_angle)
         self.read_power_task = ReadPowerTask(self.button_power)
         self.set_wavelength_task = SetWavelengthTask(
@@ -19,20 +19,39 @@ class SweepWavelength:
         self.set_actuator_position_task = SetActuatorPositionTask(
             self.button_set_actuator_position)
         self.home_actuator_task = HomeActuatorTask(self.button_home_actuator)
-        self.save = Save(frame_1_7, VARIABLES.var_entry_sweep_wavelength_directory,
+        self.save_oscilloscope = Save(frame_oscilloscope_3, VARIABLES.var_entry_sweep_wavelength_directory,
                          VARIABLES.var_entry_sweep_wavelength_filename,
                          substitute_dict={})
-        SweepWavelengthTask(frame_1_7, self)
+        self.save_calibrate_actuator = Save(frame_calibrate_actuator_2, VARIABLES.var_entry_calibrate_actuator_directory,
+                            VARIABLES.var_entry_calibrate_actuator_filename,
+                            substitute_dict={})
+        SweepWavelengthTask(frame_oscilloscope_3, self)
         self.on_change_for_photon_flux_fixed()
 
     def set_frame(self, parent):
         frame = ttk.Frame(parent)
         frame_1 = ttk.Frame(frame)
         frame_1.pack(side="top", anchor="w", padx=10, pady=10)
-        frame_2 = ttk.Frame(frame)
-        frame_2.pack(side="top", padx=10)
-        frame_3 = ttk.Frame(frame)
-        frame_3.pack(side="top", padx=10, pady=10)
+        frame_tab = ttk.Frame(frame)
+        frame_tab.pack(side="top", anchor="w", padx=10, pady=10)
+        tabControl = ttk.Notebook(frame_tab)
+        frame_oscilloscope = ttk.Frame(tabControl)
+        frame_oscilloscope.pack(side="top", anchor="w", padx=10, pady=10)
+        frame_calibrate_actuator = ttk.Frame(tabControl)
+        frame_calibrate_actuator.pack(side="top", anchor="w", padx=10, pady=10)
+        tabControl.add(frame_oscilloscope, text="Oscilloscope")
+        tabControl.add(frame_calibrate_actuator, text="Calibrate Actuator")
+        tabControl.pack(side="top", fill="both", expand=True)
+        frame_oscilloscope_1 = ttk.Frame(frame_oscilloscope)
+        frame_oscilloscope_1.pack(side="top", padx=10)
+        frame_oscilloscope_2 = ttk.Frame(frame_oscilloscope)
+        frame_oscilloscope_2.pack(side="top", padx=10, pady=10)
+        frame_oscilloscope_3 = ttk.Frame(frame_oscilloscope)
+        frame_oscilloscope_3.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_actuator_1 = ttk.Frame(frame_calibrate_actuator)
+        frame_calibrate_actuator_1.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_actuator_2 = ttk.Frame(frame_calibrate_actuator)
+        frame_calibrate_actuator_2.pack(side="top", anchor="n", padx=10)
         frame_1_1 = ttk.Frame(frame_1)
         frame_1_1.pack(side="left", anchor="n", padx=10)
         frame_1_2 = ttk.Frame(frame_1)
@@ -45,16 +64,14 @@ class SweepWavelength:
         frame_1_5.pack(side="left", anchor="n", padx=10)
         frame_1_6 = ttk.Frame(frame_1)
         frame_1_6.pack(side="left", anchor="n", padx=10)
-        frame_1_7 = ttk.Frame(frame_1)
-        frame_1_7.pack(side="left", anchor="n", padx=10)
-        frame_2_1 = ttk.Frame(frame_2)
-        frame_2_1.pack(side="left", anchor="n", padx=10)
-        frame_2_2 = ttk.Frame(frame_2)
-        frame_2_2.pack(side="left", anchor="n", padx=10)
-        frame_3_1 = ttk.Frame(frame_3)
-        frame_3_1.pack(side="left", anchor="n", padx=10)
-        frame_3_2 = ttk.Frame(frame_3)
-        frame_3_2.pack(side="left", anchor="n", padx=10)
+        frame_oscilloscope_1_1 = ttk.Frame(frame_oscilloscope_1)
+        frame_oscilloscope_1_1.pack(side="left", anchor="n", padx=10)
+        frame_oscilloscope_1_2 = ttk.Frame(frame_oscilloscope_1)
+        frame_oscilloscope_1_2.pack(side="left", anchor="n", padx=10)
+        frame_oscilloscope_2_1 = ttk.Frame(frame_oscilloscope_2)
+        frame_oscilloscope_2_1.pack(side="left", anchor="n", padx=10)
+        frame_oscilloscope_2_2 = ttk.Frame(frame_oscilloscope_2)
+        frame_oscilloscope_2_2.pack(side="left", anchor="n", padx=10)
         ttk.Label(frame_1_1, text="Current Wavelength (nm):").pack(
             side="top", anchor="w")
         ttk.Entry(frame_1_1, state="readonly", textvariable=VARIABLES.var_entry_curr_wavelength).pack(
@@ -171,15 +188,17 @@ class SweepWavelength:
         self.spinbox_sweep_actuator_explore_range_step_size = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.01, width=5,
                                                                       textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_step_size)
         self.spinbox_sweep_actuator_explore_range_step_size.pack(side="left")
-        ttk.Label(frame_2_1, text="Ch1 Instant (V-s)").pack(side="top")
-        self.plot_lifetime_instant_ch1 = Plot(frame_2_1)
-        ttk.Label(frame_2_2, text="Ch1 Average (V-s)").pack(side="top")
-        self.plot_lifetime_average_ch1 = Plot(frame_2_2)
-        ttk.Label(frame_3_1, text="Ch2 Instant (V-s)").pack(side="top")
-        self.plot_lifetime_instant_ch2 = Plot(frame_3_1)
-        ttk.Label(frame_3_2, text="Ch2 Average (V-s)").pack(side="top")
-        self.plot_lifetime_average_ch2 = Plot(frame_3_2)
-        return frame, frame_1_7
+        ttk.Label(frame_oscilloscope_1_1, text="Ch1 Instant (V-s)").pack(side="top")
+        self.plot_lifetime_instant_ch1 = Plot(frame_oscilloscope_1_1)
+        ttk.Label(frame_oscilloscope_1_2, text="Ch1 Average (V-s)").pack(side="top")
+        self.plot_lifetime_average_ch1 = Plot(frame_oscilloscope_1_2)
+        ttk.Label(frame_oscilloscope_2_1, text="Ch2 Instant (V-s)").pack(side="top")
+        self.plot_lifetime_instant_ch2 = Plot(frame_oscilloscope_2_1)
+        ttk.Label(frame_oscilloscope_2_2, text="Ch2 Average (V-s)").pack(side="top")
+        self.plot_lifetime_average_ch2 = Plot(frame_oscilloscope_2_2)
+        ttk.Label(frame_calibrate_actuator_1, text="Optimal Actuator Position (mm-nm)").pack(side="top")
+        self.plot_calibrate_actuator = Plot(frame_calibrate_actuator_1, figsize=(13, 8))
+        return frame, frame_oscilloscope_3, frame_calibrate_actuator_2
 
     def toggle_power_reading(self):
         if self.read_power_task.is_running:
@@ -607,16 +626,16 @@ class SweepWavelengthTask(Task):
     def save_data(self, X, data_ch1, data_ch2):
         if self.check_stopping():
             return
-        if not self.page.save.data_dict["header"]:
-            self.page.save.data_dict["header"].append("time(s)")
-            self.page.save.data_dict["data"].append(X)
-        self.page.save.data_dict["header"].append(
+        if not self.page.save_oscilloscope.data_dict["header"]:
+            self.page.save_oscilloscope.data_dict["header"].append("time(s)")
+            self.page.save_oscilloscope.data_dict["data"].append(X)
+        self.page.save_oscilloscope.data_dict["header"].append(
             f"{self.curr_wavelength}nm_ch1")
-        self.page.save.data_dict["data"].append(data_ch1)
-        self.page.save.data_dict["header"].append(
+        self.page.save_oscilloscope.data_dict["data"].append(data_ch1)
+        self.page.save_oscilloscope.data_dict["header"].append(
             f"{self.curr_wavelength}nm_ch2")
-        self.page.save.data_dict["data"].append(data_ch2)
-        self.page.save.save(update_datetime=False)
+        self.page.save_oscilloscope.data_dict["data"].append(data_ch2)
+        self.page.save_oscilloscope.save(update_datetime=False)
 
     def check_devices_valid(self):
         return INSTANCES.oscilloscope.valid and INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
@@ -654,7 +673,7 @@ class SweepWavelengthTask(Task):
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            self.page.save.update_datetime()
+            self.page.save_oscilloscope.update_datetime()
         super().start()
 
     def paused(self):
@@ -672,7 +691,7 @@ class SweepWavelengthTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
-        self.page.save.reset()
+        self.page.save_oscilloscope.reset()
         LOGGER.reset()
     
     def after_complete(self):

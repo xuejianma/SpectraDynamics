@@ -7,6 +7,7 @@ from equipments.monochromator import Monochromator, MonochromatorSimulator
 from equipments.actuator import Actuator, ActuatorSimulator
 from equipments.cwcontroller import CWController, CWControllerSimulator
 from equipments.lockin import Lockin, LockinSimulator
+from equipments.boxcar import Boxcar, BoxcarSimulator
 from datetime import datetime
 
 TEST_MODE = True
@@ -55,6 +56,8 @@ class Variables:
         self.var_spinbox_sweep_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_sweep_wavelength_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_filename = tk.StringVar()
+        self.var_entry_calibrate_actuator_directory = tk.StringVar()
+        self.var_entry_calibrate_actuator_filename = tk.StringVar()
         self.var_spinbox_start_angle = tk.StringVar(value=0)
         self.var_spinbox_end_angle = tk.StringVar(value=90)
         self.var_spinbox_step_angle = tk.StringVar(value=1)
@@ -98,6 +101,7 @@ class Instances:
         self.cwcontroller = CWController(VARIABLES.id_cwcontroller) if not TEST_MODE else CWControllerSimulator()
         self.lockin_top = Lockin(VARIABLES.id_lockin_top) if not TEST_MODE else LockinSimulator('top')
         self.lockin_bottom = Lockin(VARIABLES.id_lockin_bottom) if not TEST_MODE else LockinSimulator('bottom')
+        self.boxcar = Boxcar() if not TEST_MODE else BoxcarSimulator()
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 

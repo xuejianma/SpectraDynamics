@@ -21,6 +21,7 @@ class DeviceManager:
         Device(frame, "CWController", INSTANCES.cwcontroller, VARIABLES.id_cwcontroller)
         Device(frame, "Lockin (Top)", INSTANCES.lockin_top, VARIABLES.id_lockin_top)
         Device(frame, "Lockin (Bottom)", INSTANCES.lockin_bottom, VARIABLES.id_lockin_bottom)
+        Device(frame, "Boxcar", INSTANCES.boxcar, None)
         ttk.Label(frame, text="Detected hardware Ports/Ids:").pack(side="top", anchor="w", padx=(100, 0), pady=(30, 0))
         ttk.Button(frame, text="Refresh Ports/Ids", command=self.refresh).pack(side="top", anchor="w", padx=(100, 0), pady=(0, 0))
         self.text_resources = tk.Text(frame)
@@ -62,7 +63,10 @@ class Device(ttk.Frame):
             self, text="SUCCESS" if self.instance.valid else "FAIL")
         self.label_status.pack(side="left", padx=10)
         ttk.Label(self, text="Id：").pack(side="left", padx=(10, 0))
-        ttk.Entry(self, textvariable=self.id_string_var).pack(side="left", padx=10)
+        if self.id_string_var:
+            ttk.Entry(self, textvariable=self.id_string_var).pack(side="left", padx=10)
+        else:
+            ttk.Label(self, text='N/A', state='disabled').pack(side="left", padx=10)
         ttk.Button(self, text="Reconnect", command=self.reconnect).pack(
             side="left", padx=10)
         self.label_error = ttk.Label(
@@ -71,7 +75,10 @@ class Device(ttk.Frame):
         self.label_error.pack(side="left", padx=10)
 
     def reconnect(self):
-        self.instance.__init__(id_string_var=self.id_string_var)
+        if self.id_string_var:
+            self.instance.__init__(id_string_var=self.id_string_var)
+        else:
+            self.instance.__init__()
         self.label_status.config(
             text="SUCCESS" if self.instance.valid else "FAIL")
         self.label_error.config(
