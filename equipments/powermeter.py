@@ -8,7 +8,7 @@ class Powermeter:
     def __init__(self, id_string_var=None):
         self.valid = False
         self.error_message = ""
-        self.max_period = 0.4
+        self.max_period = 0.2
         self.num = 50
         self.lock = Lock()
         try:
@@ -75,5 +75,5 @@ class PowermeterSimulator:
         actuator_position = float(
             VARIABLES.var_entry_curr_actuator_position.get())
         angle = float(VARIABLES.var_entry_curr_angle.get())
-        sleep(0.2)
+        sleep(self.max_period)
         return 20 * np.exp(-0.25*abs(wavelength-actuator_position*40-400))*np.exp(-0.05*abs(angle)) + 0.01 * (random() - 0.5) + 0.1 + float(VARIABLES.var_entry_cwcontroller_curr_setpoint.get()) * 0.05

@@ -6,7 +6,6 @@ from pages.sweep_wavelength import SweepWavelength
 from pages.device_manager import DeviceManager
 from pages.sweep_power import SweepPower
 from pages.setpoint_conversion import SetpointConversion
-from pages.sweep_actuator import SweepActuator
 from utils.status_bar import StatusBar
 from utils.config import LOGGER, VARIABLES, DEFAULT, INSTANCES
 
@@ -26,7 +25,6 @@ class App:
         tabControl.add(SweepPower(tabControl).frame, text='Sweep Power')
         tabControl.add(SweepPowerCW(tabControl).frame, text='Sweep Power (CW)')
         tabControl.add(SetpointConversion(tabControl).frame, text='Setpoint Conversion')
-        tabControl.add(SweepActuator(tabControl).frame, text='Sweep Actuator')
         tabControl.add(DeviceManager(tabControl).frame, text='Device Manager')
         tabControl.pack(expand=1, fill='both')
         self.status_bar = StatusBar(self.root, VARIABLES.var_logger_status)
