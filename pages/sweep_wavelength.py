@@ -30,6 +30,7 @@ class SweepWavelength:
                             VARIABLES.var_entry_calibrate_actuator_filename,
                             substitute_dict={})
         SweepWavelengthTask(frame_oscilloscope_3, self)
+        CalibrateActuatorTask(frame_calibrate_actuator_2, self)
         self.on_change_for_photon_flux_fixed()
 
     def set_frame(self, parent):
@@ -43,8 +44,11 @@ class SweepWavelength:
         frame_oscilloscope.pack(side="top", anchor="w", padx=10, pady=10)
         frame_calibrate_actuator = ttk.Frame(tabControl)
         frame_calibrate_actuator.pack(side="top", anchor="w", padx=10, pady=10)
+        frame_boxcar = ttk.Frame(tabControl)
+        frame_boxcar.pack(side="top", anchor="w", padx=10, pady=10)
         tabControl.add(frame_oscilloscope, text="Oscilloscope")
         tabControl.add(frame_calibrate_actuator, text="Calibrate Actuator")
+        tabControl.add(frame_boxcar, text="Boxcar")
         tabControl.pack(side="top", fill="both", expand=True)
         frame_oscilloscope_1 = ttk.Frame(frame_oscilloscope)
         frame_oscilloscope_1.pack(side="top", padx=10)
@@ -56,6 +60,10 @@ class SweepWavelength:
         frame_calibrate_actuator_1.pack(side="top", anchor="n", padx=10)
         frame_calibrate_actuator_2 = ttk.Frame(frame_calibrate_actuator)
         frame_calibrate_actuator_2.pack(side="top", anchor="n", padx=10)
+        frame_boxcar_1 = ttk.Frame(frame_boxcar)
+        frame_boxcar_1.pack(side="top", anchor="n", padx=10)
+        frame_boxcar_2 = ttk.Frame(frame_boxcar)
+        frame_boxcar_2.pack(side="top", anchor="n", padx=10)
         frame_1_1 = ttk.Frame(frame_1)
         frame_1_1.pack(side="left", anchor="n", padx=10)
         frame_1_2 = ttk.Frame(frame_1)
@@ -200,8 +208,9 @@ class SweepWavelength:
         self.plot_lifetime_instant_ch2 = Plot(frame_oscilloscope_2_1)
         ttk.Label(frame_oscilloscope_2_2, text="Ch2 Average (V-s)").pack(side="top")
         self.plot_lifetime_average_ch2 = Plot(frame_oscilloscope_2_2)
+        ttk.Label(frame_calibrate_actuator_1, text="Please first manually set actuator position at the max power for starting wavelength.").pack(side="top")
         ttk.Label(frame_calibrate_actuator_1, text="Optimal Actuator Position (mm-nm)").pack(side="top")
-        self.plot_calibrate_actuator = Plot(frame_calibrate_actuator_1, figsize=(13, 8))
+        self.plot_calibrate_actuator = Plot(frame_calibrate_actuator_1, figsize=(13, 6))
         return frame, frame_oscilloscope_3, frame_calibrate_actuator_2
 
     def toggle_power_reading(self):
