@@ -29,6 +29,11 @@ class Plot:
         self.ax.clear()
         self.ax.plot(*args, **kwargs)
         self.canvas.draw()
+    
+    def pcolormesh(self, *args, **kwargs):
+        self.ax.clear()
+        self.ax.pcolormesh(*args, **kwargs)
+        self.canvas.draw()
 
     def clear(self):
         self.ax.clear()

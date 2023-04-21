@@ -1,4 +1,5 @@
 from tkinter import ttk
+from tkinter.filedialog import askopenfilename
 from utils.config import INSTANCES, VARIABLES, LOGGER, UTILS
 from utils.spinbox import Spinbox
 from utils.plot import Plot
@@ -11,11 +12,12 @@ from pages.sweep_wavelength_modules.set_actuator_position import SetActuatorPosi
 from pages.sweep_wavelength_modules.home_actuator import HomeActuatorTask
 from pages.sweep_wavelength_modules.sweep_wavelength import SweepWavelengthTask
 from pages.sweep_wavelength_modules.calibrate_actuator import CalibrateActuatorTask
+from pages.sweep_wavelength_modules.sweep_wavelength_boxcar import SweepWavelengthBoxcarTask
 
 
 class SweepWavelength:
     def __init__(self, parent) -> None:
-        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2 = self.set_frame(parent)
+        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_3 = self.set_frame(parent)
         self.set_angle_task = SetAngleTask(self.button_set_angle)
         self.read_power_task = ReadPowerTask(self.button_power)
         self.set_wavelength_task = SetWavelengthTask(
@@ -29,8 +31,12 @@ class SweepWavelength:
         self.save_calibrate_actuator = Save(frame_calibrate_actuator_2, VARIABLES.var_entry_calibrate_actuator_directory,
                             VARIABLES.var_entry_calibrate_actuator_filename,
                             substitute_dict={})
+        self.save_boxcar = Save(frame_boxcar_3, VARIABLES.var_entry_sweep_wavelength_boxcar_directory,
+                    VARIABLES.var_entry_sweep_wavelength_boxcar_filename,
+                    substitute_dict={})
         SweepWavelengthTask(frame_oscilloscope_3, self)
         CalibrateActuatorTask(frame_calibrate_actuator_2, self)
+        SweepWavelengthBoxcarTask(frame_boxcar_3, self)
         self.on_change_for_photon_flux_fixed()
 
     def set_frame(self, parent):
@@ -64,6 +70,8 @@ class SweepWavelength:
         frame_boxcar_1.pack(side="top", anchor="n", padx=10)
         frame_boxcar_2 = ttk.Frame(frame_boxcar)
         frame_boxcar_2.pack(side="top", anchor="n", padx=10)
+        frame_boxcar_3 = ttk.Frame(frame_boxcar)
+        frame_boxcar_3.pack(side="top", anchor="n", padx=10)
         frame_1_1 = ttk.Frame(frame_1)
         frame_1_1.pack(side="left", anchor="n", padx=10)
         frame_1_2 = ttk.Frame(frame_1)
@@ -84,6 +92,10 @@ class SweepWavelength:
         frame_oscilloscope_2_1.pack(side="left", anchor="n", padx=10)
         frame_oscilloscope_2_2 = ttk.Frame(frame_oscilloscope_2)
         frame_oscilloscope_2_2.pack(side="left", anchor="n", padx=10)
+        frame_boxcar_2_1 = ttk.Frame(frame_boxcar_2)
+        frame_boxcar_2_1.pack(side="left", anchor="n", padx=10)
+        frame_boxcar_2_2 = ttk.Frame(frame_boxcar_2)
+        frame_boxcar_2_2.pack(side="left", anchor="n", padx=10)
         ttk.Label(frame_1_1, text="Current Wavelength (nm):").pack(
             side="top", anchor="w")
         ttk.Entry(frame_1_1, state="readonly", textvariable=VARIABLES.var_entry_curr_wavelength).pack(
@@ -210,8 +222,17 @@ class SweepWavelength:
         self.plot_lifetime_average_ch2 = Plot(frame_oscilloscope_2_2)
         ttk.Label(frame_calibrate_actuator_1, text="Please first manually set actuator position at the max power for starting wavelength.").pack(side="top")
         ttk.Label(frame_calibrate_actuator_1, text="Optimal Actuator Position (mm-nm)").pack(side="top")
-        self.plot_calibrate_actuator = Plot(frame_calibrate_actuator_1, figsize=(13, 6))
-        return frame, frame_oscilloscope_3, frame_calibrate_actuator_2
+        self.plot_calibrate_actuator = Plot(frame_calibrate_actuator_1, figsize=(13, 5))
+        ttk.Label(frame_boxcar_1, text="Path to actuator calibration file").pack(side="left")
+        ttk.Entry(frame_boxcar_1, textvariable=VARIABLES.var_entry_boxcar_actuator_calibration_file, width=60).pack(side="left")
+        ttk.Label(frame_boxcar_2_1, text="Boxcar Curve").pack(side="top")
+        self.plot_boxcar_curve = Plot(frame_boxcar_2_1)
+        ttk.Label(frame_boxcar_2_2, text="Boxcar Heatmap").pack(side="top")
+        self.plot_boxcar_heatmap = Plot(frame_boxcar_2_2)
+        ttk.Button(frame_boxcar_1, text="Browse", command=self.browse_actuator_calibration_file).pack(side="left")
+        ttk.Label(frame_boxcar_3, text="Ending Angle (deg)").pack(side="top")
+        Spinbox(frame_boxcar_3, from_=0, to=float("inf"), textvariable=VARIABLES.var_entry_boxcar_ending_angle).pack(side="top", pady=(0,10))
+        return frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_3
 
     def toggle_power_reading(self):
         if self.read_power_task.is_running:
@@ -267,3 +288,8 @@ class SweepWavelength:
 
     def on_home_actuator(self):
         self.home_actuator_task.start()
+    
+    def browse_actuator_calibration_file(self):
+        file_path = askopenfilename(title="Select Actuator Calibration File", filetypes=(("csv files", "*.csv"),))
+        if file_path:
+            VARIABLES.var_entry_boxcar_actuator_calibration_file.set(file_path)

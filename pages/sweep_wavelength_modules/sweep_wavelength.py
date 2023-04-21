@@ -41,7 +41,7 @@ class SweepWavelengthTask(Task):
         self.page.set_wavelength_task.task_loop()
         VARIABLES.var_spinbox_target_angle.set(0)
         self.page.set_angle_task.task_loop()
-        self.find_backgrond_power()
+        self.find_background_power()
         self.find_max_power_by_actuator()
         self.find_target_power_by_ndfilter()
         self.measure_lifetime()
@@ -69,7 +69,7 @@ class SweepWavelengthTask(Task):
             self.reset()
             raise e
 
-    def find_backgrond_power(self):
+    def find_background_power(self):
         if self.check_stopping():
             return
         LOGGER.log(

@@ -2,7 +2,9 @@ from tkinter import ttk
 import tkinter as tk
 from utils.config import INSTANCES, VARIABLES, LOGGER
 from datetime import datetime
-from pyvisa import ResourceManager
+import sys
+if sys.platform.startswith("win"):
+    from pyvisa import ResourceManager
 
 
 class DeviceManager:
