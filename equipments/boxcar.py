@@ -1,4 +1,6 @@
-import nidaqmx
+import sys
+if sys.platform.startswith("win"):
+    import nidaqmx
 import time
 
 class Boxcar():

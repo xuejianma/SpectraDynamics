@@ -4,6 +4,7 @@ from utils.task import Task, RUNNING, PAUSED
 from time import sleep
 import numpy as np
 
+
 class SweepWavelengthTask(Task):
     def __init__(self, parent, page) -> None:
         super().__init__(parent)
@@ -141,7 +142,9 @@ class SweepWavelengthTask(Task):
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
         if VARIABLES.var_checkbutton_photon_flux_fixed.get():
-            target_power = target_power * float(VARIABLES.var_spinbox_wavelength_at_target_power.get()) / self.curr_wavelength
+            target_power = target_power * \
+                float(VARIABLES.var_spinbox_wavelength_at_target_power.get()
+                      ) / self.curr_wavelength
         if curr_power < target_power:
             LOGGER.log(
                 "[Sweep Paused] Current max power is lower than target power. Please adjust actuator position to reach large enough max power before resuming.")
@@ -155,7 +158,8 @@ class SweepWavelengthTask(Task):
             while abs(target_power - curr_power) > 0.005 * target_power and abs(delta) > 0.005:
                 if self.check_stopping():
                     return
-                delta = -0.5 * (target_power - curr_power) / curr_power * 10 * float(VARIABLES.var_spinbox_ndfilter_speed.get())
+                delta = -0.5 * (target_power - curr_power) / curr_power * \
+                    10 * float(VARIABLES.var_spinbox_ndfilter_speed.get())
                 curr_ndfilter_position = float(
                     VARIABLES.var_entry_curr_angle.get())
                 VARIABLES.var_spinbox_target_angle.set(

@@ -17,7 +17,8 @@ from pages.sweep_wavelength_modules.sweep_wavelength_boxcar import SweepWaveleng
 
 class SweepWavelength:
     def __init__(self, parent) -> None:
-        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_3 = self.set_frame(parent)
+        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_3 = self.set_frame(
+            parent)
         self.set_angle_task = SetAngleTask(self.button_set_angle)
         self.read_power_task = ReadPowerTask(self.button_power)
         self.set_wavelength_task = SetWavelengthTask(
@@ -26,14 +27,14 @@ class SweepWavelength:
             self.button_set_actuator_position)
         self.home_actuator_task = HomeActuatorTask(self.button_home_actuator)
         self.save_oscilloscope = Save(frame_oscilloscope_3, VARIABLES.var_entry_sweep_wavelength_directory,
-                         VARIABLES.var_entry_sweep_wavelength_filename,
-                         substitute_dict={})
+                                      VARIABLES.var_entry_sweep_wavelength_filename,
+                                      substitute_dict={})
         self.save_calibrate_actuator = Save(frame_calibrate_actuator_2, VARIABLES.var_entry_calibrate_actuator_directory,
-                            VARIABLES.var_entry_calibrate_actuator_filename,
-                            substitute_dict={})
+                                            VARIABLES.var_entry_calibrate_actuator_filename,
+                                            substitute_dict={})
         self.save_boxcar = Save(frame_boxcar_3, VARIABLES.var_entry_sweep_wavelength_boxcar_directory,
-                    VARIABLES.var_entry_sweep_wavelength_boxcar_filename,
-                    substitute_dict={})
+                                VARIABLES.var_entry_sweep_wavelength_boxcar_filename,
+                                substitute_dict={})
         SweepWavelengthTask(frame_oscilloscope_3, self)
         CalibrateActuatorTask(frame_calibrate_actuator_2, self)
         SweepWavelengthBoxcarTask(frame_boxcar_3, self)
@@ -146,13 +147,15 @@ class SweepWavelength:
         self.spinbox_sweep_start_wavelength = Spinbox(frame_1_4, from_=0, to=float(
             "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_sweep_start_wavelength)
         self.spinbox_sweep_start_wavelength.pack(side="top", anchor="w")
-        VARIABLES.var_spinbox_sweep_start_wavelength.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        VARIABLES.var_spinbox_sweep_start_wavelength.trace_add(
+            "write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         ttk.Label(frame_1_4, text="Sweep End Wavelength (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_end_wavelength = Spinbox(frame_1_4, from_=0, to=float(
             "inf"), increment=0.1, textvariable=VARIABLES.var_spinbox_sweep_end_wavelength)
         self.spinbox_sweep_end_wavelength.pack(side="top", anchor="w")
-        VARIABLES.var_spinbox_sweep_end_wavelength.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        VARIABLES.var_spinbox_sweep_end_wavelength.trace_add(
+            "write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         ttk.Label(frame_1_4, text="Sweep Step Size (nm): ").pack(
             side="top", anchor="w")
         self.spinbox_sweep_step_size = Spinbox(frame_1_4, from_=0, to=float(
@@ -161,7 +164,8 @@ class SweepWavelength:
         self.checkbutton_photon_flux_fixed = ttk.Checkbutton(
             frame_1_4, text="Photon Flux Fixed\n(instead of power fixed)", variable=VARIABLES.var_checkbutton_photon_flux_fixed)
         self.checkbutton_photon_flux_fixed.pack(side="top", anchor="w")
-        VARIABLES.var_checkbutton_photon_flux_fixed.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        VARIABLES.var_checkbutton_photon_flux_fixed.trace_add(
+            "write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         self.label_photon_flux_fixed = ttk.Label(frame_1_4, text="\n\n")
         self.label_photon_flux_fixed.pack(side="top", anchor="w")
         ttk.Label(frame_1_5, text="Current Power (rel. uW): ").pack(
@@ -184,12 +188,15 @@ class SweepWavelength:
         self.spinbox_target_power = Spinbox(frame_1_5, from_=0, to=float("inf"), increment=0.1,
                                             textvariable=VARIABLES.var_spinbox_sweep_target_power)
         self.spinbox_target_power.pack(side="top", anchor="w")
-        VARIABLES.var_spinbox_sweep_target_power.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
-        ttk.Label(frame_1_5, text="Wavelength at target power (nm)\n(for fixed photon flux mode)").pack(side="top", anchor="w")
+        VARIABLES.var_spinbox_sweep_target_power.trace_add(
+            "write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        ttk.Label(frame_1_5, text="Wavelength at target power (nm)\n(for fixed photon flux mode)").pack(
+            side="top", anchor="w")
         self.spinbox_wavelength_at_target_power = Spinbox(frame_1_5, from_=0, to=float("inf"), increment=0.1,
-                textvariable=VARIABLES.var_spinbox_wavelength_at_target_power)
+                                                          textvariable=VARIABLES.var_spinbox_wavelength_at_target_power)
         self.spinbox_wavelength_at_target_power.pack(side="top", anchor="w")
-        VARIABLES.var_spinbox_wavelength_at_target_power.trace_add("write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
+        VARIABLES.var_spinbox_wavelength_at_target_power.trace_add(
+            "write", lambda val, index, mode: self.on_change_for_photon_flux_fixed())
         self.label_oscilloscope_wait_time = ttk.Label(
             frame_1_6, text="Oscilloscope wait time (s): ")
         self.label_oscilloscope_wait_time.pack(side="top", anchor="w")
@@ -212,26 +219,37 @@ class SweepWavelength:
         self.spinbox_sweep_actuator_explore_range_step_size = Spinbox(frame_1_6, from_=0, to=float("inf"), increment=0.01, width=5,
                                                                       textvariable=VARIABLES.var_spinbox_sweep_actuator_explore_range_step_size)
         self.spinbox_sweep_actuator_explore_range_step_size.pack(side="left")
-        ttk.Label(frame_oscilloscope_1_1, text="Ch1 Instant (V-s)").pack(side="top")
+        ttk.Label(frame_oscilloscope_1_1,
+                  text="Ch1 Instant (V-s)").pack(side="top")
         self.plot_lifetime_instant_ch1 = Plot(frame_oscilloscope_1_1)
-        ttk.Label(frame_oscilloscope_1_2, text="Ch1 Average (V-s)").pack(side="top")
+        ttk.Label(frame_oscilloscope_1_2,
+                  text="Ch1 Average (V-s)").pack(side="top")
         self.plot_lifetime_average_ch1 = Plot(frame_oscilloscope_1_2)
-        ttk.Label(frame_oscilloscope_2_1, text="Ch2 Instant (V-s)").pack(side="top")
+        ttk.Label(frame_oscilloscope_2_1,
+                  text="Ch2 Instant (V-s)").pack(side="top")
         self.plot_lifetime_instant_ch2 = Plot(frame_oscilloscope_2_1)
-        ttk.Label(frame_oscilloscope_2_2, text="Ch2 Average (V-s)").pack(side="top")
+        ttk.Label(frame_oscilloscope_2_2,
+                  text="Ch2 Average (V-s)").pack(side="top")
         self.plot_lifetime_average_ch2 = Plot(frame_oscilloscope_2_2)
-        ttk.Label(frame_calibrate_actuator_1, text="Please first manually set actuator position at the max power for starting wavelength.").pack(side="top")
-        ttk.Label(frame_calibrate_actuator_1, text="Optimal Actuator Position (mm-nm)").pack(side="top")
-        self.plot_calibrate_actuator = Plot(frame_calibrate_actuator_1, figsize=(13, 5))
-        ttk.Label(frame_boxcar_1, text="Path to actuator calibration file").pack(side="left")
-        ttk.Entry(frame_boxcar_1, textvariable=VARIABLES.var_entry_boxcar_actuator_calibration_file, width=60).pack(side="left")
-        ttk.Label(frame_boxcar_2_1, text="Boxcar Curve").pack(side="top")
+        ttk.Label(frame_calibrate_actuator_1,
+                  text="Please first manually set actuator position at the max power for starting wavelength.").pack(side="top")
+        ttk.Label(frame_calibrate_actuator_1,
+                  text="Optimal Actuator Position (mm-nm)").pack(side="top")
+        self.plot_calibrate_actuator = Plot(
+            frame_calibrate_actuator_1, figsize=(13, 5))
+        ttk.Label(frame_boxcar_1, text="Path to actuator calibration file").pack(
+            side="left")
+        ttk.Entry(frame_boxcar_1, textvariable=VARIABLES.var_entry_boxcar_actuator_calibration_file,
+                  width=60).pack(side="left")
+        ttk.Label(frame_boxcar_2_1, text="Boxcar Curve (V-uW)").pack(side="top")
         self.plot_boxcar_curve = Plot(frame_boxcar_2_1)
-        ttk.Label(frame_boxcar_2_2, text="Boxcar Heatmap").pack(side="top")
+        ttk.Label(frame_boxcar_2_2, text="Boxcar Heatmap (uW-nm z:V)").pack(side="top")
         self.plot_boxcar_heatmap = Plot(frame_boxcar_2_2)
-        ttk.Button(frame_boxcar_1, text="Browse", command=self.browse_actuator_calibration_file).pack(side="left")
+        ttk.Button(frame_boxcar_1, text="Browse",
+                   command=self.browse_actuator_calibration_file).pack(side="left")
         ttk.Label(frame_boxcar_3, text="Ending Angle (deg)").pack(side="top")
-        Spinbox(frame_boxcar_3, from_=0, to=float("inf"), textvariable=VARIABLES.var_entry_boxcar_ending_angle).pack(side="top", pady=(0,10))
+        Spinbox(frame_boxcar_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_entry_boxcar_ending_angle).pack(side="top", pady=(0, 10))
         return frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_3
 
     def toggle_power_reading(self):
@@ -239,16 +257,22 @@ class SweepWavelength:
             self.turn_off_power_reading()
         else:
             self.turn_on_power_reading()
-    
+
     def on_change_for_photon_flux_fixed(self):
         if VARIABLES.var_checkbutton_photon_flux_fixed.get():
             self.spinbox_wavelength_at_target_power.config(state="normal")
-            target_wavelength = float(VARIABLES.var_spinbox_wavelength_at_target_power.get())
-            start_wavelength = float(VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            end_wavelength = float(VARIABLES.var_spinbox_sweep_end_wavelength.get())
-            target_power = round(float(VARIABLES.var_spinbox_sweep_target_power.get()), 6)
-            start_power = round(target_power * target_wavelength / start_wavelength, 6)
-            end_power = round(target_power * target_wavelength / end_wavelength, 6)
+            target_wavelength = float(
+                VARIABLES.var_spinbox_wavelength_at_target_power.get())
+            start_wavelength = float(
+                VARIABLES.var_spinbox_sweep_start_wavelength.get())
+            end_wavelength = float(
+                VARIABLES.var_spinbox_sweep_end_wavelength.get())
+            target_power = round(
+                float(VARIABLES.var_spinbox_sweep_target_power.get()), 6)
+            start_power = round(
+                target_power * target_wavelength / start_wavelength, 6)
+            end_power = round(
+                target_power * target_wavelength / end_wavelength, 6)
             pair_to_display = []
             pair_to_display.append((start_wavelength, start_power))
             if (target_wavelength, target_power) not in pair_to_display:
@@ -258,7 +282,8 @@ class SweepWavelength:
             pair_to_display.sort(key=lambda x: x[0])
             text_to_display = ""
             for pair in pair_to_display:
-                text_to_display += str(pair[0]) + "nm: " + str(pair[1]) + "uW\n"
+                text_to_display += str(pair[0]) + \
+                    "nm: " + str(pair[1]) + "uW\n"
             if len(pair_to_display) == 1:
                 text_to_display += "\n\n"
             elif len(pair_to_display) == 2:
@@ -288,8 +313,9 @@ class SweepWavelength:
 
     def on_home_actuator(self):
         self.home_actuator_task.start()
-    
+
     def browse_actuator_calibration_file(self):
-        file_path = askopenfilename(title="Select Actuator Calibration File", filetypes=(("csv files", "*.csv"),))
+        file_path = askopenfilename(
+            title="Select Actuator Calibration File", filetypes=(("csv files", "*.csv"),))
         if file_path:
             VARIABLES.var_entry_boxcar_actuator_calibration_file.set(file_path)

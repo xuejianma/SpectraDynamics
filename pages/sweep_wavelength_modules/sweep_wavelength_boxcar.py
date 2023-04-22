@@ -1,8 +1,12 @@
 from threading import Thread
 from utils.config import VARIABLES, INSTANCES, LOGGER, UTILS
 from utils.task import Task, RUNNING, PAUSED
-from time import sleep
+from equipments.powermeter import MAX_PERIOD
+# from pages.sweep_wavelength import SweepWavelength
+from time import sleep, time
 import numpy as np
+import csv
+from scipy.interpolate import interp1d
 
 
 class SweepWavelengthBoxcarTask(Task):
@@ -36,14 +40,64 @@ class SweepWavelengthBoxcarTask(Task):
             self.page.set_actuator_position_task,
             self.page.home_actuator_task,
         ]
+        self.ndfilter_direction_positive = True
+        self.calibrate_func = None
+        self.wavelength_list = []
+        self.power_map = []
+        self.ch1_map = []
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
         self.page.set_wavelength_task.task_loop()
-        VARIABLES.var_spinbox_target_angle.set(0)
-        self.page.set_angle_task.task_loop()
+        VARIABLES.var_spinbox_target_actuator_position.set(
+            self.calibrate_func(self.curr_wavelength))
+        self.page.set_actuator_position_task.task_loop()
+        if self.ndfilter_direction_positive:
+            if abs(float(VARIABLES.var_entry_curr_angle.get())) > 0.1:
+                VARIABLES.var_spinbox_target_angle.set(0)
+                self.page.set_angle_task.task_loop()
+            VARIABLES.var_spinbox_target_angle.set(
+                float(VARIABLES.var_entry_boxcar_ending_angle.get()))
+        else:
+            if abs(float(VARIABLES.var_entry_curr_angle.get()) - float(VARIABLES.var_entry_boxcar_ending_angle.get())) > 0.1:
+                VARIABLES.var_spinbox_target_angle.set(
+                    VARIABLES.var_entry_boxcar_ending_angle.get())
+                self.page.set_angle_task.task_loop()
+            VARIABLES.var_spinbox_target_angle.set(0)
+        self.page.set_angle_task.start()
+        # Below has to follow the set_angle_task.start() function for stop and resume to work properly
+        self.ndfilter_direction_positive = not self.ndfilter_direction_positive
+        start_time = time()
+        power_list = []
+        ch1_list = []
+        sleep(MAX_PERIOD*2)
+        while self.page.set_angle_task.is_running:
+            if self.check_stopping():
+                return
+            power_list.append(float(VARIABLES.var_entry_curr_power.get()))
+            ch1_list.append(float(INSTANCES.boxcar.get_voltage()))
+            sleep(MAX_PERIOD)
+            curr_time = time()
+            print(curr_time)
+            if curr_time - start_time > 30:
+                LOGGER.log(
+                    f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Set angle task timeout.")
+                self.page.set_angle_task.reset()
+                self.reset()
+                return
         if self.check_stopping():
             return
+        # Reverse the list if the ndfilter is moving in the negative direction. Notice ndfilter_direction_positive was flipped already.
+        if self.ndfilter_direction_positive:
+            power_list = power_list[::-1]
+            ch1_list = ch1_list[::-1]
+        self.wavelength_list.append(self.curr_wavelength)
+        self.power_map.append(power_list)
+        self.ch1_map.append(ch1_list)
+        print(self.wavelength_list, self.power_map, self.ch1_map)
+        self.page.plot_boxcar_curve.plot(self.power_map[-1], self.ch1_map[-1])
+        self.page.plot_boxcar_heatmap.pcolormesh(
+            *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch1_map))
         if not self.check_devices_valid():
             LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Invalid device(s).")
@@ -117,6 +171,24 @@ class SweepWavelengthBoxcarTask(Task):
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
             self.page.save_oscilloscope.update_datetime()
+        if not self.calibrate_func:
+            calibrate_file = VARIABLES.var_entry_boxcar_actuator_calibration_file.get()
+            if calibrate_file == "":
+                LOGGER.log("Please select a calibration file.")
+                return
+            try:
+                with open(calibrate_file, 'r') as f:
+                    reader = csv.reader(f)
+                    next(reader)
+                    wavelength = []
+                    position = []
+                    for row in reader:
+                        wavelength.append(float(row[0]))
+                        position.append(float(row[1]))
+                    self.calibrate_func = interp1d(wavelength, position)
+            except Exception as e:
+                LOGGER.log(e)
+                return
         super().start()
 
     def paused(self):
@@ -135,6 +207,10 @@ class SweepWavelengthBoxcarTask(Task):
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
         self.page.save_oscilloscope.reset()
+        self.wavelength_list = []
+        self.power_map = []
+        self.ch1_map = []
+        self.ndfilter_direction_positive = True
         LOGGER.reset()
 
     def after_complete(self):

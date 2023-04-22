@@ -5,7 +5,8 @@ from time import sleep
 import warnings
 # Ignore UserWarning from pywinauto
 warnings.simplefilter("ignore", UserWarning)
-from pywinauto.application import Application
+if sys.platform.startswith("win"):
+    from pywinauto.application import Application
 
 
 class Monochromator:
