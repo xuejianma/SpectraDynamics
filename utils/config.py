@@ -10,7 +10,7 @@ from equipments.lockin import Lockin, LockinSimulator
 from equipments.boxcar import Boxcar, BoxcarSimulator
 from datetime import datetime
 
-TEST_MODE = True
+TEST_MODE = False
 
 
 class Variables:
@@ -28,6 +28,7 @@ class Variables:
         self.id_lockin_top = tk.StringVar(value='USB0::0xB506::0x2000::004169')
         self.id_lockin_bottom = tk.StringVar(
             value='USB0::0xB506::0x2000::004642')
+        self.id_boxcar_niboard = tk.StringVar(value='NI6259')
         self.var_entry_lifetime_directory = tk.StringVar()
         self.var_entry_lifetime_filename = tk.StringVar()
         self.var_spinbox_lifetime_num = tk.StringVar(value=20)

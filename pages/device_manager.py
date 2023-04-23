@@ -29,7 +29,7 @@ class DeviceManager:
                VARIABLES.id_lockin_top)
         Device(frame, "Lockin (Bottom)", INSTANCES.lockin_bottom,
                VARIABLES.id_lockin_bottom)
-        Device(frame, "Boxcar", INSTANCES.boxcar, None)
+        Device(frame, "Boxcar", INSTANCES.boxcar, VARIABLES.id_boxcar_niboard)
         ttk.Label(frame, text="Detected hardware Ports/Ids:").pack(side="top",
                                                                    anchor="w", padx=(100, 0), pady=(30, 0))
         ttk.Button(frame, text="Refresh Ports/Ids", command=self.refresh).pack(

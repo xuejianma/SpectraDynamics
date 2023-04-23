@@ -126,8 +126,8 @@ class CalibrateActuatorTask(Task):
         self.page.save_calibrate_actuator.save()
 
     def check_devices_valid(self):
-        return INSTANCES.oscilloscope.valid and INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
-            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and INSTANCES.boxcar.valid
+        return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
+            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid
         
     def start(self):
         if not self.check_devices_valid():

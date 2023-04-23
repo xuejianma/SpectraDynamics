@@ -51,6 +51,8 @@ class SweepWavelengthBoxcarTask(Task):
         self.page.set_wavelength_task.task_loop()
         VARIABLES.var_spinbox_target_actuator_position.set(
             self.calibrate_func(self.curr_wavelength))
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
         if self.ndfilter_direction_positive:
             if abs(float(VARIABLES.var_entry_curr_angle.get())) > 0.1:
@@ -65,6 +67,8 @@ class SweepWavelengthBoxcarTask(Task):
                 self.page.set_angle_task.task_loop()
             VARIABLES.var_spinbox_target_angle.set(0)
         self.page.set_angle_task.start()
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Sweeping angles.")
         # Below has to follow the set_angle_task.start() function for stop and resume to work properly
         self.ndfilter_direction_positive = not self.ndfilter_direction_positive
         start_time = time()
@@ -78,7 +82,6 @@ class SweepWavelengthBoxcarTask(Task):
             ch1_list.append(float(INSTANCES.boxcar.get_voltage()))
             sleep(MAX_PERIOD)
             curr_time = time()
-            print(curr_time)
             if curr_time - start_time > 30:
                 LOGGER.log(
                     f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Set angle task timeout.")
@@ -94,7 +97,6 @@ class SweepWavelengthBoxcarTask(Task):
         self.wavelength_list.append(self.curr_wavelength)
         self.power_map.append(power_list)
         self.ch1_map.append(ch1_list)
-        print(self.wavelength_list, self.power_map, self.ch1_map)
         self.page.plot_boxcar_curve.plot(power_list, ch1_list)
         self.page.plot_boxcar_heatmap.pcolormesh(
             *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch1_map))
@@ -133,7 +135,7 @@ class SweepWavelengthBoxcarTask(Task):
         self.page.save_boxcar.save(update_datetime=False)
 
     def check_devices_valid(self):
-        return INSTANCES.oscilloscope.valid and INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
+        return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
             and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and INSTANCES.boxcar.valid
 
     def start(self):
