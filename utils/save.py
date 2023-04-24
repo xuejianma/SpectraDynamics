@@ -73,7 +73,11 @@ class Save:
                 with open('/'.join([self.var_directory.get(), filename]), "w", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(self.data_dict["header"])
-                    writer.writerows(np.asarray(self.data_dict["data"]).T)
+                    max_length = max(len(sublist)
+                                     for sublist in self.data_dict["data"])
+                    regular_array = np.array(
+                        [sublist + [''] * (max_length - len(sublist)) for sublist in self.data_dict["data"]])
+                    writer.writerows(np.asarray(regular_array).T)
             except Exception as e:
                 LOGGER.log("Error saving to {}: ".format(filename) + str(e))
         else:

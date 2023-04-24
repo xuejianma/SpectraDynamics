@@ -7,6 +7,7 @@ from equipments.monochromator import Monochromator, MonochromatorSimulator
 from equipments.actuator import Actuator, ActuatorSimulator
 from equipments.cwcontroller import CWController, CWControllerSimulator
 from equipments.lockin import Lockin, LockinSimulator
+from equipments.boxcar import Boxcar, BoxcarSimulator
 from datetime import datetime
 
 TEST_MODE = True
@@ -25,7 +26,9 @@ class Variables:
         self.id_powermeter = tk.StringVar(value='P0016683')
         self.id_cwcontroller = tk.StringVar(value='M00460823')
         self.id_lockin_top = tk.StringVar(value='USB0::0xB506::0x2000::004169')
-        self.id_lockin_bottom = tk.StringVar(value='USB0::0xB506::0x2000::004642')
+        self.id_lockin_bottom = tk.StringVar(
+            value='USB0::0xB506::0x2000::004642')
+        self.id_boxcar_niboard = tk.StringVar(value='NI6259')
         self.var_entry_lifetime_directory = tk.StringVar()
         self.var_entry_lifetime_filename = tk.StringVar()
         self.var_spinbox_lifetime_num = tk.StringVar(value=20)
@@ -55,6 +58,12 @@ class Variables:
         self.var_spinbox_sweep_lifetime_wait_time = tk.StringVar(value=6)
         self.var_entry_sweep_wavelength_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_filename = tk.StringVar()
+        self.var_entry_calibrate_actuator_directory = tk.StringVar()
+        self.var_entry_calibrate_actuator_filename = tk.StringVar()
+        self.var_entry_boxcar_actuator_calibration_file = tk.StringVar()
+        self.var_entry_boxcar_ending_angle = tk.StringVar(value=0)
+        self.var_entry_sweep_wavelength_boxcar_directory = tk.StringVar()
+        self.var_entry_sweep_wavelength_boxcar_filename = tk.StringVar()
         self.var_spinbox_start_angle = tk.StringVar(value=0)
         self.var_spinbox_end_angle = tk.StringVar(value=90)
         self.var_spinbox_step_angle = tk.StringVar(value=1)
@@ -75,9 +84,12 @@ class Variables:
         self.var_entry_sweep_power_cw_filename = tk.StringVar()
         self.var_spinbox_sweep_power_cw_num = tk.StringVar(value=10)
         self.var_spinbox_cwcontroller_wait_time = tk.StringVar(value=1)
-        self.var_spinbox_setpoint_conversion_start_setpoint = tk.StringVar(value=0)
-        self.var_spinbox_setpoint_conversion_end_setpoint = tk.StringVar(value=10)
-        self.var_spinbox_setpoint_conversion_step_setpoint = tk.StringVar(value=0.1)
+        self.var_spinbox_setpoint_conversion_start_setpoint = tk.StringVar(
+            value=0)
+        self.var_spinbox_setpoint_conversion_end_setpoint = tk.StringVar(
+            value=10)
+        self.var_spinbox_setpoint_conversion_step_setpoint = tk.StringVar(
+            value=0.1)
         self.var_entry_setpoint_conversion_directory = tk.StringVar()
         self.var_entry_setpoint_conversion_filename = tk.StringVar()
         self.var_entry_notification_app_token = tk.StringVar()
@@ -90,14 +102,23 @@ class Instances:
     """
 
     def initialize_instances(self):
-        self.oscilloscope = Oscilloscope(VARIABLES.id_oscilloscope) if not TEST_MODE else OscilloscopeSimulator()
-        self.ndfilter = NDFilter(VARIABLES.id_ndfilter) if not TEST_MODE else NDFilterSimulator()
-        self.powermeter = Powermeter(VARIABLES.id_powermeter) if not TEST_MODE else PowermeterSimulator()
-        self.monochromator = Monochromator(VARIABLES.id_monochromator) if not TEST_MODE else MonochromatorSimulator()
-        self.actuator = Actuator(VARIABLES.id_actuator) if not TEST_MODE else ActuatorSimulator()
-        self.cwcontroller = CWController(VARIABLES.id_cwcontroller) if not TEST_MODE else CWControllerSimulator()
-        self.lockin_top = Lockin(VARIABLES.id_lockin_top) if not TEST_MODE else LockinSimulator('top')
-        self.lockin_bottom = Lockin(VARIABLES.id_lockin_bottom) if not TEST_MODE else LockinSimulator('bottom')
+        self.oscilloscope = Oscilloscope(
+            VARIABLES.id_oscilloscope) if not TEST_MODE else OscilloscopeSimulator()
+        self.ndfilter = NDFilter(
+            VARIABLES.id_ndfilter) if not TEST_MODE else NDFilterSimulator()
+        self.powermeter = Powermeter(
+            VARIABLES.id_powermeter) if not TEST_MODE else PowermeterSimulator()
+        self.monochromator = Monochromator(
+            VARIABLES.id_monochromator) if not TEST_MODE else MonochromatorSimulator()
+        self.actuator = Actuator(
+            VARIABLES.id_actuator) if not TEST_MODE else ActuatorSimulator()
+        self.cwcontroller = CWController(
+            VARIABLES.id_cwcontroller) if not TEST_MODE else CWControllerSimulator()
+        self.lockin_top = Lockin(
+            VARIABLES.id_lockin_top) if not TEST_MODE else LockinSimulator('top')
+        self.lockin_bottom = Lockin(
+            VARIABLES.id_lockin_bottom) if not TEST_MODE else LockinSimulator('bottom')
+        self.boxcar = Boxcar() if not TEST_MODE else BoxcarSimulator()
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 
@@ -179,19 +200,22 @@ class Utils:
         VARIABLES.var_spinbox_background_power.set(
             round(float(VARIABLES.var_entry_curr_power.get()) +
                   float(VARIABLES.var_spinbox_background_power.get()), 6))
-    
+
     def push_notification(self, message):
-        import http.client, urllib
+        import http.client
+        import urllib
         conn = http.client.HTTPSConnection("api.pushover.net:443")
         conn.request("POST", "/1/messages.json",
-        urllib.parse.urlencode({
-            "token": str(VARIABLES.var_entry_notification_app_token.get()),
-            "user": str(VARIABLES.var_entry_notification_user_key.get()),
-            "message": str(message),
-        }), { "Content-type": "application/x-www-form-urlencoded" })
+                     urllib.parse.urlencode({
+                         "token": str(VARIABLES.var_entry_notification_app_token.get()),
+                         "user": str(VARIABLES.var_entry_notification_user_key.get()),
+                         "message": str(message),
+                     }), {"Content-type": "application/x-www-form-urlencoded"})
         response = conn.getresponse()
-        print("Sending Notification to Pushover: ", response.status, response.reason, response.read())
+        print("Sending Notification to Pushover: ",
+              response.status, response.reason, response.read())
         conn.close()
+
 
 class Globals:
     """

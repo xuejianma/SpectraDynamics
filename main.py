@@ -20,7 +20,7 @@ class App:
         self.root.title('SpectraDynamics')
         self.root.protocol('WM_DELETE_WINDOW', self.on_closing)
         tabControl = ttk.Notebook(self.root)
-        tabControl.add(SweepWavelength(tabControl).frame, text='Sweep Wavelength')
+        tabControl.add(SweepWavelength(tabControl).frame, text='Sweep Wavelength (Oscilloscope)')
         tabControl.add(Lifetime(tabControl).frame, text='Lifetime')
         tabControl.add(SweepPower(tabControl).frame, text='Sweep Power')
         tabControl.add(SweepPowerCW(tabControl).frame, text='Sweep Power (CW)')

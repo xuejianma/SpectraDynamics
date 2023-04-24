@@ -46,5 +46,12 @@ class NDFilterSimulator:
         return self.angle
 
     def set_angle(self, angle):
-        sleep(1)
+        curr_angle = self.angle
+        delta = 1 if angle > curr_angle else -1
+        while abs(curr_angle - angle) > 0.1:
+            curr_angle += delta
+            self.angle = curr_angle
+            sleep(0.1)
         self.angle = angle
+        
+

@@ -4,7 +4,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 
 class Plot:
-    def __init__(self, parent, figsize=(11, 4), dpi=60):
+    def __init__(self, parent, figsize=(10, 3), dpi=60):
         self.parent = parent
         self.figsize = figsize
         self.dpi = dpi
@@ -28,6 +28,11 @@ class Plot:
     def plot(self, *args, **kwargs):
         self.ax.clear()
         self.ax.plot(*args, **kwargs)
+        self.canvas.draw()
+    
+    def pcolormesh(self, *args, **kwargs):
+        self.ax.clear()
+        self.ax.pcolormesh(*args, **kwargs)
         self.canvas.draw()
 
     def clear(self):
