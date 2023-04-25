@@ -21,10 +21,15 @@ class SetWavelengthTask():
             #     self.button_set_wavelength.config(state="normal")
             self.is_running = False
         try:
-            INSTANCES.monochromator.set_wavelength(
-                float(VARIABLES.var_spinbox_target_wavelength.get()))
-            VARIABLES.var_entry_curr_wavelength.set(
-                round(INSTANCES.monochromator.get_wavelength(), 6))
+            trials = 0
+            while abs(INSTANCES.monochromator.get_wavelength() - float(VARIABLES.var_spinbox_target_wavelength.get())) > 0.1:
+                INSTANCES.monochromator.set_wavelength(
+                    float(VARIABLES.var_spinbox_target_wavelength.get()))
+                VARIABLES.var_entry_curr_wavelength.set(
+                    round(INSTANCES.monochromator.get_wavelength(), 6))
+                trials += 1
+                if trials > 10:
+                    raise Exception("Failed to set wavelength.")
         except Exception as e:
             LOGGER.log(e)
             raise e

@@ -73,7 +73,8 @@ class CalibrateActuatorTask(Task):
             super().task_loop()
         except Exception as e:
             LOGGER.log(e)
-            self.reset()
+            self.reset(error=True)
+            UTILS.push_notification("Error: " + str(e))
             raise e          
     
     def find_max_power_by_actuator(self):
@@ -172,7 +173,7 @@ class CalibrateActuatorTask(Task):
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
 
-    def reset(self):
+    def reset(self, error=False):
         super().reset()
         for widget in self.on_off_widgets:
             widget.config(state="normal")
@@ -182,4 +183,5 @@ class CalibrateActuatorTask(Task):
         self.save_wavelength_list = []
         self.save_actuator_position_list = []
         self.page.save_calibrate_actuator.reset()
-        LOGGER.reset()
+        if not error:
+            LOGGER.reset()

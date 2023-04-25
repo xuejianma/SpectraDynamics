@@ -9,7 +9,7 @@ import csv
 from scipy.interpolate import interp1d
 
 
-class SweepWavelengthBoxcarTask(Task):
+class SweepWavelengthBoxcarHeatmapTask(Task):
     def __init__(self, parent, page) -> None:
         super().__init__(parent)
         self.page = page
@@ -121,18 +121,19 @@ class SweepWavelengthBoxcarTask(Task):
         except Exception as e:
             LOGGER.log(e)
             self.reset()
+            UTILS.push_notification("Error: " + str(e))
             raise e
 
     def save_data(self, power_list, ch1_list):
         if self.check_stopping():
             return
-        self.page.save_boxcar.data_dict["header"].append(
+        self.page.save_boxcar_heatmap.data_dict["header"].append(
             f"{self.curr_wavelength}nm_power")
-        self.page.save_boxcar.data_dict["data"].append(power_list)
-        self.page.save_boxcar.data_dict["header"].append(
+        self.page.save_boxcar_heatmap.data_dict["data"].append(power_list)
+        self.page.save_boxcar_heatmap.data_dict["header"].append(
             f"{self.curr_wavelength}nm_ch1")
-        self.page.save_boxcar.data_dict["data"].append(ch1_list)
-        self.page.save_boxcar.save(update_datetime=False)
+        self.page.save_boxcar_heatmap.data_dict["data"].append(ch1_list)
+        self.page.save_boxcar_heatmap.save(update_datetime=False)
 
     def check_devices_valid(self):
         return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
@@ -170,7 +171,7 @@ class SweepWavelengthBoxcarTask(Task):
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            self.page.save_boxcar.update_datetime()
+            self.page.save_boxcar_heatmap.update_datetime()
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_boxcar_actuator_calibration_file.get()
             if calibrate_file == "":
@@ -206,7 +207,8 @@ class SweepWavelengthBoxcarTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
-        self.page.save_boxcar.reset()
+        self.page.save_boxcar_heatmap.reset()
+        self.calibrate_func = None
         self.wavelength_list = []
         self.power_map = []
         self.ch1_map = []

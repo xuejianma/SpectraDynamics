@@ -67,7 +67,8 @@ class SweepWavelengthTask(Task):
             super().task_loop()
         except Exception as e:
             LOGGER.log(e)
-            self.reset()
+            self.reset(error=True)
+            UTILS.push_notification("Error: " + str(e))
             raise e
 
     def find_background_power(self):
@@ -269,7 +270,7 @@ class SweepWavelengthTask(Task):
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
 
-    def reset(self):
+    def reset(self, error=False):
         super().reset()
         VARIABLES.var_spinbox_target_angle.set(0)
         self.page.set_angle_task.task_loop()
@@ -278,7 +279,8 @@ class SweepWavelengthTask(Task):
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
         self.page.save_oscilloscope.reset()
-        LOGGER.reset()
+        if not error:
+            LOGGER.reset()
 
     def after_complete(self):
         super().after_complete()
