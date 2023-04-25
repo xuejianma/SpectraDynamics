@@ -78,4 +78,4 @@ class PowermeterSimulator:
         # angle = float(VARIABLES.var_entry_curr_angle.get())
         angle = INSTANCES.ndfilter.get_angle()
         sleep(self.max_period)
-        return 5 * np.exp(-0.02*abs(wavelength-actuator_position*600+3000))*np.exp(-0.05*abs(angle)) + 0.01 * (random() - 0.5) + 0.1 + float(VARIABLES.var_entry_cwcontroller_curr_setpoint.get()) * 0.05
+        return 5 * np.exp(-0.02*abs(wavelength-actuator_position*600+3000))*np.exp(-0.33*abs(angle**0.6)) + 0.01 * (random() - 0.5) + 0.1 + float(VARIABLES.var_entry_cwcontroller_curr_setpoint.get()) * 0.05

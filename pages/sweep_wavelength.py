@@ -14,11 +14,12 @@ from pages.sweep_wavelength_modules.sweep_wavelength import SweepWavelengthTask
 from pages.sweep_wavelength_modules.calibrate_actuator import CalibrateActuatorTask
 from pages.sweep_wavelength_modules.sweep_wavelength_boxcar_heatmap import SweepWavelengthBoxcarHeatmapTask
 from pages.sweep_wavelength_modules.calibrate_ndfilter import CalibrateNDFilterTask
+from pages.sweep_wavelength_modules.sweep_wavelength_boxcar_single_power import SweepWavelengthBoxcarSinglePowerTask
 
 
 class SweepWavelength:
     def __init__(self, parent) -> None:
-        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_heapmap_3, frame_calibrate_ndfilter_3 = self.set_frame(
+        self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_heapmap_3, frame_calibrate_ndfilter_3, frame_boxcar_single_power_3 = self.set_frame(
             parent)
         self.set_angle_task = SetAngleTask(self.button_set_angle)
         self.read_power_task = ReadPowerTask(self.button_power)
@@ -39,10 +40,14 @@ class SweepWavelength:
         self.save_calibrate_ndfilter = Save(frame_calibrate_ndfilter_3, VARIABLES.var_entry_calibrate_ndfilter_directory,
                                             VARIABLES.var_entry_calibrate_ndfilter_filename,
                                             substitute_dict={})
+        self.save_boxcar_single_power = Save(frame_boxcar_single_power_3, VARIABLES.var_entry_sweep_wavelength_boxcar_single_power_directory,
+                                VARIABLES.var_entry_sweep_wavelength_boxcar_single_power_filename,
+                                substitute_dict={'power': VARIABLES.var_spinbox_sweep_target_power.get()})
         SweepWavelengthTask(frame_oscilloscope_3, self)
         CalibrateActuatorTask(frame_calibrate_actuator_2, self)
         SweepWavelengthBoxcarHeatmapTask(frame_boxcar_heapmap_3, self)
         CalibrateNDFilterTask(frame_calibrate_ndfilter_3, self)
+        SweepWavelengthBoxcarSinglePowerTask(frame_boxcar_single_power_3, self)
         self.on_change_for_photon_flux_fixed()
 
     def set_frame(self, parent):
@@ -60,10 +65,13 @@ class SweepWavelength:
         frame_boxcar_heapmap.pack(side="top", anchor="w", padx=10, pady=10)
         frame_calibrate_ndfilter = ttk.Frame(tabControl)
         frame_calibrate_ndfilter.pack(side="top", anchor="w", padx=10, pady=10)
+        frame_boxcar_single_power = ttk.Frame(tabControl)
+        frame_boxcar_single_power.pack(side="top", anchor="w", padx=10, pady=10)
         tabControl.add(frame_oscilloscope, text="Oscilloscope")
         tabControl.add(frame_calibrate_actuator, text="Calibrate Actuator")
         tabControl.add(frame_boxcar_heapmap, text="Boxcar (Heatmap)")
         tabControl.add(frame_calibrate_ndfilter, text="Calibrate NDFilter")
+        tabControl.add(frame_boxcar_single_power, text="Boxcar (Single Power)")
         tabControl.pack(side="top", fill="both", expand=True)
         frame_oscilloscope_1 = ttk.Frame(frame_oscilloscope)
         frame_oscilloscope_1.pack(side="top", padx=10)
@@ -87,6 +95,12 @@ class SweepWavelength:
         frame_calibrate_ndfilter_2.pack(side="top", anchor="n", padx=10)
         frame_calibrate_ndfilter_3 = ttk.Frame(frame_calibrate_ndfilter)
         frame_calibrate_ndfilter_3.pack(side="top", anchor="n", padx=10)
+        frame_boxcar_single_power_1 = ttk.Frame(frame_boxcar_single_power)
+        frame_boxcar_single_power_1.pack(side="top", anchor="n", padx=10)
+        frame_boxcar_single_power_2 = ttk.Frame(frame_boxcar_single_power)
+        frame_boxcar_single_power_2.pack(side="top", anchor="n", padx=10)
+        frame_boxcar_single_power_3 = ttk.Frame(frame_boxcar_single_power)
+        frame_boxcar_single_power_3.pack(side="top", anchor="n", padx=10)
         frame_1_1 = ttk.Frame(frame_1)
         frame_1_1.pack(side="left", anchor="n", padx=10)
         frame_1_2 = ttk.Frame(frame_1)
@@ -290,7 +304,27 @@ class SweepWavelength:
         self.spinbox_calibrate_actuator_steps = Spinbox(frame_calibrate_ndfilter_3, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_steps)
         self.spinbox_calibrate_actuator_steps.pack(side="top", pady=(0, 10))
-        return frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_heapmap_3, frame_calibrate_ndfilter_3
+        ttk.Label(frame_boxcar_single_power_1, text="Path to actuator calibration file").pack(
+            side="left")
+        ttk.Entry(frame_boxcar_single_power_1, textvariable=VARIABLES.var_entry_boxcar_actuator_calibration_file,
+                    width=60).pack(side="left")
+        ttk.Button(frame_boxcar_single_power_1, text="Browse",
+                        command=self.browse_actuator_calibration_file).pack(side="left")
+        self.plot_boxcar_single_power = Plot(frame_boxcar_single_power_2)
+        ttk.Label(frame_boxcar_single_power_3, text="Remember to set \"Target Power (uW)\" above").pack(side="top")
+        ttk.Label(frame_boxcar_single_power_3, text="NDFilter offset angle (for accurate angle prediction from power)").pack(side="top")
+        self.spinbox_boxcar_single_power_ndfilter_offset_angle = Spinbox(frame_boxcar_single_power_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_boxcar_single_power_ndfilter_offset_angle)
+        self.spinbox_boxcar_single_power_ndfilter_offset_angle.pack(side="top", pady=(0, 0))
+        ttk.Label(frame_boxcar_single_power_3, text="Time interval between Boxcar data acquisitions (s) (should be larger than sliding window averaging time)").pack(side="top")
+        self.spinbox_boxcar_single_power_time_interval = Spinbox(frame_boxcar_single_power_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_boxcar_single_power_time_interval)
+        self.spinbox_boxcar_single_power_time_interval.pack(side="top", pady=(0, 0))
+        ttk.Label(frame_boxcar_single_power_3, text="Number of data acquisitions").pack(side="top")
+        self.spinbox_boxcar_single_power_number_of_data_acquisitions = Spinbox(frame_boxcar_single_power_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_boxcar_single_power_number_of_data_acquisitions)
+        self.spinbox_boxcar_single_power_number_of_data_acquisitions.pack(side="top", pady=(0, 10))
+        return frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_heapmap_3, frame_calibrate_ndfilter_3, frame_boxcar_single_power_3
 
     def toggle_power_reading(self):
         if self.read_power_task.is_running:

@@ -69,7 +69,7 @@ class Save:
                 filename = self.var_filename.get().replace("{date}", self.now.strftime(
                     "%Y%m%d")).replace("{time}", self.now.strftime("%H%M%S"))
                 for key, value in self.substitute_dict.items():
-                    filename = filename.replace("{" + key + "}", value.get())
+                    filename = filename.replace("{" + key + "}", value)
                 with open('/'.join([self.var_directory.get(), filename]), "w", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(self.data_dict["header"])
