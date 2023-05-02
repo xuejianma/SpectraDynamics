@@ -94,13 +94,14 @@ class LifetimeTask(Task):
             self.page.save.update_datetime()
         super().start()
 
-    def reset(self):
+    def reset(self, error=False):
         super().reset()
         self.data_ch1 = None
         self.data_ch2 = None
         self.page.spinbox_num.config(state="normal")
         self.page.save.reset()
-        LOGGER.reset()
+        if not error:
+            LOGGER.reset()
 
     def save_data(self):
         if not self.page.save.data_dict["header"]:

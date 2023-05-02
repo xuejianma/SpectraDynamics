@@ -158,7 +158,7 @@ class CalibrateNDFilterTask(Task):
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
             self.page.save_calibrate_ndfilter.update_datetime()
         if not self.calibrate_func:
-            calibrate_file = VARIABLES.var_entry_boxcar_actuator_calibration_file.get()
+            calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
                 LOGGER.log("Please select a calibration file.")
                 return

@@ -9,7 +9,7 @@ import csv
 from scipy.interpolate import interp1d
 
 
-class SweepWavelengthBoxcarHeatmapTask(Task):
+class SweepWavelengthLockinSinglePowerTask(Task):
     def __init__(self, parent, page) -> None:
         super().__init__(parent)
         self.page = page
@@ -40,11 +40,10 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
             self.page.set_actuator_position_task,
             self.page.home_actuator_task,
         ]
-        self.ndfilter_direction_positive = True
         self.calibrate_func = None
         self.wavelength_list = []
-        self.power_map = []
-        self.ch1_map = []
+        self.ch1_list = []
+        self.ch2_list = []
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
@@ -54,53 +53,47 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
-        if self.ndfilter_direction_positive:
-            if abs(float(VARIABLES.var_entry_curr_angle.get())) > 0.1:
-                VARIABLES.var_spinbox_target_angle.set(0)
-                self.page.set_angle_task.task_loop()
-            VARIABLES.var_spinbox_target_angle.set(
-                float(VARIABLES.var_entry_heatmap_ending_angle.get()))
-        else:
-            if abs(float(VARIABLES.var_entry_curr_angle.get()) - float(VARIABLES.var_entry_heatmap_ending_angle.get())) > 0.1:
-                VARIABLES.var_spinbox_target_angle.set(
-                    VARIABLES.var_entry_heatmap_ending_angle.get())
-                self.page.set_angle_task.task_loop()
-            VARIABLES.var_spinbox_target_angle.set(0)
-        self.page.set_angle_task.start()
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Sweeping angles.")
-        # Below has to follow the set_angle_task.start() function for stop and resume to work properly
-        self.ndfilter_direction_positive = not self.ndfilter_direction_positive
-        start_time = time()
-        power_list = []
-        ch1_list = []
         sleep(MAX_PERIOD*2)
-        while self.page.set_angle_task.is_running:
+        curr_power = float(VARIABLES.var_entry_curr_power.get())
+        curr_angle = float(VARIABLES.var_entry_curr_angle.get())
+        angle_offset = float(VARIABLES.var_spinbox_single_power_ndfilter_offset_angle.get())
+        max_power = self.predict_max_power(curr_power, curr_angle, angle_offset) if curr_angle > angle_offset else float(VARIABLES.var_entry_curr_power.get())
+        target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
+        if  max_power < target_power:
+            LOGGER.log(
+                "[Sweep Paused] Current max power is lower than target power. Please adjust actuator position to reach large enough max power before resuming.")
+            if self.status == RUNNING:
+                self.pause()
+                UTILS.push_notification("Paused due to low max power.")
+            return
+        target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
+        VARIABLES.var_spinbox_target_angle.set(target_angle)
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
+        self.page.set_angle_task.task_loop()
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding accurate target angle.")
+        self.find_target_power_by_ndfilter()
+        num_of_acquisitions = int(VARIABLES.var_spinbox_lockin_single_power_number_of_data_acquisitions.get())
+        time_interval = float(VARIABLES.var_spinbox_lockin_single_power_time_interval.get())
+        lockin_ch1_voltage_sum = 0.0
+        lockin_ch2_voltage_sum = 0.0
+        LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Acquiring data.")
+        for _ in range(num_of_acquisitions):
             if self.check_stopping():
                 return
-            power_list.append(float(VARIABLES.var_entry_curr_power.get()))
-            ch1_list.append(float(INSTANCES.boxcar.get_voltage()))
-            sleep(MAX_PERIOD)
-            curr_time = time()
-            if curr_time - start_time > 30:
-                LOGGER.log(
-                    f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Set angle task timeout.")
-                self.page.set_angle_task.reset()
-                self.reset()
-                return
+            sleep(time_interval)
+            lockin_ch1_voltage_sum += float(INSTANCES.lockin_top.get_output())
+            lockin_ch2_voltage_sum += float(INSTANCES.lockin_bottom.get_output())
         if self.check_stopping():
             return
-        # Reverse the list if the ndfilter is moving in the negative direction. Notice ndfilter_direction_positive was flipped already.
-        if self.ndfilter_direction_positive:
-            power_list = power_list[::-1]
-            ch1_list = ch1_list[::-1]
         self.wavelength_list.append(self.curr_wavelength)
-        self.power_map.append(power_list)
-        self.ch1_map.append(ch1_list)
-        self.page.plot_boxcar_curve.plot(power_list, ch1_list)
-        self.page.plot_boxcar_heatmap.pcolormesh(
-            *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch1_map))
-        self.save_data(power_list, ch1_list)
+        self.ch1_list.append(lockin_ch1_voltage_sum / num_of_acquisitions)
+        self.ch2_list.append(lockin_ch2_voltage_sum / num_of_acquisitions)
+        self.page.plot_lockin_single_power_ch1.plot(self.wavelength_list, self.ch1_list)
+        self.page.plot_lockin_single_power_ch2.plot(self.wavelength_list, self.ch2_list)
+        self.save_data(self.wavelength_list, self.ch1_list, self.ch2_list)
         if not self.check_devices_valid():
             LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Invalid device(s).")
@@ -124,20 +117,20 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
             UTILS.push_notification("Error: " + str(e))
             raise e
 
-    def save_data(self, power_list, ch1_list):
+    def save_data(self, wavelength_list, ch1_list, ch2_list):
         if self.check_stopping():
             return
-        self.page.save_boxcar_heatmap.data_dict["header"].append(
-            f"{self.curr_wavelength}nm_power")
-        self.page.save_boxcar_heatmap.data_dict["data"].append(power_list)
-        self.page.save_boxcar_heatmap.data_dict["header"].append(
-            f"{self.curr_wavelength}nm_ch1")
-        self.page.save_boxcar_heatmap.data_dict["data"].append(ch1_list)
-        self.page.save_boxcar_heatmap.save(update_datetime=False)
+        if not self.page.save_lockin_single_power.data_dict["header"]:
+            self.page.save_lockin_single_power.data_dict["header"].append("wavelength")
+            self.page.save_lockin_single_power.data_dict["header"].append("ch1")
+            self.page.save_lockin_single_power.data_dict["header"].append("ch2")
+        self.page.save_lockin_single_power.data_dict["data"] = [wavelength_list, ch1_list, ch2_list]
+        self.page.save_lockin_single_power.save(update_datetime=False)
 
     def check_devices_valid(self):
         return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
-            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and INSTANCES.boxcar.valid
+            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and \
+                INSTANCES.lockin_top.valid and INSTANCES.lockin_bottom.valid
 
     def start(self):
         if not self.check_devices_valid():
@@ -171,7 +164,7 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            self.page.save_boxcar_heatmap.update_datetime()
+            self.page.save_lockin_single_power.update_datetime()
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
@@ -207,12 +200,11 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
-        self.page.save_boxcar_heatmap.reset()
+        self.page.save_lockin_single_power.reset()
         self.calibrate_func = None
         self.wavelength_list = []
-        self.power_map = []
-        self.ch1_map = []
-        self.ndfilter_direction_positive = True
+        self.ch1_list = []
+        self.ch2_list = []
         if not error:
             LOGGER.reset()
 
@@ -220,19 +212,38 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         super().after_complete()
         UTILS.push_notification("Sweep completed!")
 
-    def pad_heatmap(self, wavelength_list, power_map, signal_map):
-        max_length = max([len(sublist) for sublist in power_map])
-        if power_map[0][0] < power_map[0][-1]:
-            edge_power = max([max(sublist) for sublist in power_map])
-        else:
-            edge_power = min([min(sublist) for sublist in power_map])
-        power_map_padded = [np.concatenate((sublist, np.full(
-            max_length - len(sublist), edge_power))) for sublist in power_map]
-        signal_map_padded = [np.concatenate((sublist, np.full(
-            max_length - len(sublist), np.nan))) for sublist in signal_map]
-        power_map_padded = np.array(power_map_padded)
-        wavelength_lists_padded = np.array(
-            [wavelength_list]*len(power_map_padded[0])).T
-        signal_map_padded = np.array(signal_map_padded)
-        xx, yy, z = wavelength_lists_padded, power_map_padded, signal_map_padded
-        return xx, yy, z
+    def predict_angle(self, power, amplitude, offset, coeff=0.33):
+        '''
+        Reverse function of amplitude*np.exp(-coeff*(angle-offset)**0.6).
+        The 0.6 comes from empirical fitting with ndfilter calibration data.
+        '''
+        return (-np.log(power/amplitude)/coeff)**(1/0.6)+offset
+
+    def predict_max_power(self, power, angle, offset, coeff=0.33):
+        return power / np.exp(-coeff*(angle-offset)**0.6)
+    
+    def find_target_power_by_ndfilter(self):
+        if self.check_stopping():
+            return
+        curr_power = float(VARIABLES.var_entry_curr_power.get())
+        target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
+        if VARIABLES.var_checkbutton_photon_flux_fixed.get():
+            target_power = target_power * \
+                float(VARIABLES.var_spinbox_wavelength_at_target_power.get()
+                      ) / self.curr_wavelength
+        LOGGER.log(
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding target power {round(target_power, 6)}uW by NDFilter.")
+        delta = float('inf')
+        while abs(target_power - curr_power) > 0.005 * target_power and abs(delta) > 0.005:
+            if self.check_stopping():
+                return
+            delta = -0.5 * (target_power - curr_power) / curr_power * \
+                10 * float(VARIABLES.var_spinbox_ndfilter_speed.get())
+            curr_ndfilter_position = float(
+                VARIABLES.var_entry_curr_angle.get())
+            VARIABLES.var_spinbox_target_angle.set(
+                round(curr_ndfilter_position + delta, 6))
+            self.page.set_angle_task.task_loop()
+            # wait for var_entry_curr_power to update
+            sleep(INSTANCES.powermeter.max_period + 0.2)
+            curr_power = float(VARIABLES.var_entry_curr_power.get())

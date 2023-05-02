@@ -9,7 +9,7 @@ import csv
 from scipy.interpolate import interp1d
 
 
-class SweepWavelengthBoxcarHeatmapTask(Task):
+class SweepWavelengthLockinHeatmapTask(Task):
     def __init__(self, parent, page) -> None:
         super().__init__(parent)
         self.page = page
@@ -45,6 +45,7 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         self.wavelength_list = []
         self.power_map = []
         self.ch1_map = []
+        self.ch2_map = []
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
@@ -74,12 +75,14 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         start_time = time()
         power_list = []
         ch1_list = []
+        ch2_list = []
         sleep(MAX_PERIOD*2)
         while self.page.set_angle_task.is_running:
             if self.check_stopping():
                 return
             power_list.append(float(VARIABLES.var_entry_curr_power.get()))
-            ch1_list.append(float(INSTANCES.boxcar.get_voltage()))
+            ch1_list.append(float(INSTANCES.lockin_top.get_output()))
+            ch2_list.append(float(INSTANCES.lockin_bottom.get_output()))
             sleep(MAX_PERIOD)
             curr_time = time()
             if curr_time - start_time > 30:
@@ -94,13 +97,18 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         if self.ndfilter_direction_positive:
             power_list = power_list[::-1]
             ch1_list = ch1_list[::-1]
+            ch2_list = ch2_list[::-1]
         self.wavelength_list.append(self.curr_wavelength)
         self.power_map.append(power_list)
         self.ch1_map.append(ch1_list)
-        self.page.plot_boxcar_curve.plot(power_list, ch1_list)
-        self.page.plot_boxcar_heatmap.pcolormesh(
+        self.ch2_map.append(ch2_list)
+        self.page.plot_lockin_curve_ch1.plot(power_list, ch1_list)
+        self.page.plot_lockin_curve_ch2.plot(power_list, ch2_list)
+        self.page.plot_lockin_heatmap_ch1.pcolormesh(
             *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch1_map))
-        self.save_data(power_list, ch1_list)
+        self.page.plot_lockin_heatmap_ch2.pcolormesh(
+            *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch2_map))
+        self.save_data(power_list, ch1_list, ch2_list)
         if not self.check_devices_valid():
             LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Invalid device(s).")
@@ -124,20 +132,24 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
             UTILS.push_notification("Error: " + str(e))
             raise e
 
-    def save_data(self, power_list, ch1_list):
+    def save_data(self, power_list, ch1_list, ch2_list):
         if self.check_stopping():
             return
-        self.page.save_boxcar_heatmap.data_dict["header"].append(
+        self.page.save_lockin_heatmap.data_dict["header"].append(
             f"{self.curr_wavelength}nm_power")
-        self.page.save_boxcar_heatmap.data_dict["data"].append(power_list)
-        self.page.save_boxcar_heatmap.data_dict["header"].append(
+        self.page.save_lockin_heatmap.data_dict["data"].append(power_list)
+        self.page.save_lockin_heatmap.data_dict["header"].append(
             f"{self.curr_wavelength}nm_ch1")
-        self.page.save_boxcar_heatmap.data_dict["data"].append(ch1_list)
-        self.page.save_boxcar_heatmap.save(update_datetime=False)
+        self.page.save_lockin_heatmap.data_dict["data"].append(ch1_list)
+        self.page.save_lockin_heatmap.data_dict["header"].append(
+            f"{self.curr_wavelength}nm_ch2")
+        self.page.save_lockin_heatmap.data_dict["data"].append(ch2_list)
+        self.page.save_lockin_heatmap.save(update_datetime=False)
 
     def check_devices_valid(self):
         return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
-            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and INSTANCES.boxcar.valid
+            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and \
+                INSTANCES.lockin_top.valid and INSTANCES.lockin_bottom.valid
 
     def start(self):
         if not self.check_devices_valid():
@@ -171,7 +183,7 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            self.page.save_boxcar_heatmap.update_datetime()
+            self.page.save_lockin_heatmap.update_datetime()
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
@@ -207,11 +219,12 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
-        self.page.save_boxcar_heatmap.reset()
+        self.page.save_lockin_heatmap.reset()
         self.calibrate_func = None
         self.wavelength_list = []
         self.power_map = []
         self.ch1_map = []
+        self.ch2_map = []
         self.ndfilter_direction_positive = True
         if not error:
             LOGGER.reset()

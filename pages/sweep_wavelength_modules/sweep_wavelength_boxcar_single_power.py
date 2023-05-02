@@ -55,7 +55,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         sleep(MAX_PERIOD*2)
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         curr_angle = float(VARIABLES.var_entry_curr_angle.get())
-        angle_offset = float(VARIABLES.var_spinbox_boxcar_single_power_ndfilter_offset_angle.get())
+        angle_offset = float(VARIABLES.var_spinbox_single_power_ndfilter_offset_angle.get())
         max_power = self.predict_max_power(curr_power, curr_angle, angle_offset) if curr_angle > angle_offset else float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
         if  max_power < target_power:
@@ -159,7 +159,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
             self.page.save_boxcar_single_power.update_datetime()
         if not self.calibrate_func:
-            calibrate_file = VARIABLES.var_entry_boxcar_actuator_calibration_file.get()
+            calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
                 LOGGER.log("Please select a calibration file.")
                 return
