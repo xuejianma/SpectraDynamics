@@ -56,7 +56,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         curr_angle = float(VARIABLES.var_entry_curr_angle.get())
         angle_offset = float(VARIABLES.var_spinbox_boxcar_single_power_ndfilter_offset_angle.get())
-        max_power = self.predict_max_power(curr_power, curr_angle, angle_offset)
+        max_power = self.predict_max_power(curr_power, curr_angle, angle_offset) if curr_angle > angle_offset else float(VARIABLES.var_entry_curr_power.get())
         target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
         if  max_power < target_power:
             LOGGER.log(
@@ -81,8 +81,8 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         for _ in range(num_of_acquisitions):
             if self.check_stopping():
                 return
-            boxcar_ch1_voltage_sum += float(INSTANCES.boxcar.get_voltage())
             sleep(time_interval)
+            boxcar_ch1_voltage_sum += float(INSTANCES.boxcar.get_voltage())
         if self.check_stopping():
             return
         self.wavelength_list.append(self.curr_wavelength)

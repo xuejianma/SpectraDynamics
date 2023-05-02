@@ -1,4 +1,5 @@
 from threading import Thread
+from time import sleep
 from utils.config import VARIABLES, INSTANCES, LOGGER
 
 class SetWavelengthTask():
@@ -28,6 +29,7 @@ class SetWavelengthTask():
                 VARIABLES.var_entry_curr_wavelength.set(
                     round(INSTANCES.monochromator.get_wavelength(), 6))
                 trials += 1
+                sleep(1)
                 if trials > 10:
                     raise Exception("Failed to set wavelength.")
         except Exception as e:

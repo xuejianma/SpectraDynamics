@@ -103,6 +103,8 @@ class LifetimeTask(Task):
         LOGGER.reset()
 
     def save_data(self):
+        if not self.page.save.data_dict["header"]:
+            self.page.save.data_dict["header"] = ["Time(s)", "Ch1(V)", "Ch2(V)"]
         data_to_save = np.asarray([self.X, self.data_ch1, self.data_ch2])
         self.page.save.data_dict["data"] = data_to_save
         self.page.save.save(update_datetime=False)
