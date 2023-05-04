@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from pages.lifetime import Lifetime
 from pages.sweep_power_cw import SweepPowerCW
+from pages.sweep_power_quasi_cw import SweepPowerQuasiCW
 from pages.sweep_wavelength import SweepWavelength
 from pages.device_manager import DeviceManager
 from pages.sweep_power import SweepPower
@@ -24,6 +25,7 @@ class App:
         tabControl.add(Lifetime(tabControl).frame, text='Lifetime')
         tabControl.add(SweepPower(tabControl).frame, text='Sweep Power')
         tabControl.add(SweepPowerCW(tabControl).frame, text='Sweep Power (CW)')
+        tabControl.add(SweepPowerQuasiCW(tabControl).frame, text='Sweep Power (Quasi-CW)')
         tabControl.add(SetpointConversion(tabControl).frame, text='Setpoint Conversion')
         tabControl.add(DeviceManager(tabControl).frame, text='Device Manager')
         tabControl.pack(expand=1, fill='both')

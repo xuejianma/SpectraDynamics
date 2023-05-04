@@ -34,6 +34,11 @@ class NDFilter:
         self.motor.move_to(angle)
         while self.motor.is_in_motion:
             sleep(0.1)
+    
+    def home(self):
+        self.motor.move_home()
+        while self.motor.is_in_motion:
+            sleep(0.1)
 
 
 class NDFilterSimulator:
@@ -48,10 +53,14 @@ class NDFilterSimulator:
     def set_angle(self, angle):
         direction = 1 if angle > self.angle else -1
         curr_angle = self.angle
-        steps = int(abs(angle - curr_angle) / 0.01)
+        steps = int(abs(angle - curr_angle) / 0.05)
         for _ in range(steps):
-            self.angle += 0.01 * direction
+            self.angle += 0.05 * direction
             sleep(0.001)
         self.angle = angle
+    
+    def home(self):
+        sleep(1)
+        self.angle = 0
         
 

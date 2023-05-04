@@ -108,7 +108,7 @@ class SetPointConversionTask(Task):
             super().task_loop()
         except Exception as e:
             LOGGER.log(e)
-            self.reset()
+            self.reset(error=True)
             raise e
     
     def save_data(self):
@@ -135,13 +135,15 @@ class SetPointConversionTask(Task):
             GLOBALS.powers_converted_from_setpoints = []
         super().start()
     
-    def reset(self):
+    def reset(self, error=False):
         for widget in self.on_off_widgets:
             widget.config(state="normal")
         INSTANCES.cwcontroller.set_current_setpoint(0)
         VARIABLES.var_entry_cwcontroller_curr_setpoint.set(round(INSTANCES.cwcontroller.get_current_setpoint_mA(), 6))
         self.page.save.reset()
         super().reset()
+        if not error:
+            LOGGER.reset()
     
     def paused(self):
         super().paused()

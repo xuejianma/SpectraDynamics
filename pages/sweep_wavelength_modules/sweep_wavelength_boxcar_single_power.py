@@ -108,7 +108,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
             super().task_loop()
         except Exception as e:
             LOGGER.log(e)
-            self.reset()
+            self.reset(error=True)
             UTILS.push_notification("Error: " + str(e))
             raise e
 
@@ -185,7 +185,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
 
-    def reset(self):
+    def reset(self, error=False):
         super().reset()
         VARIABLES.var_spinbox_target_angle.set(0)
         self.page.set_angle_task.task_loop()
@@ -197,7 +197,8 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         self.calibrate_func = None
         self.wavelength_list = []
         self.ch1_list = []
-        LOGGER.reset()
+        if not error:
+            LOGGER.reset()
 
     def after_complete(self):
         super().after_complete()

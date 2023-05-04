@@ -89,7 +89,7 @@ class SweepWavelengthLockinHeatmapTask(Task):
                 LOGGER.log(
                     f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Set angle task timeout.")
                 self.page.set_angle_task.reset()
-                self.reset()
+                self.reset(error=True)
                 return
         if self.check_stopping():
             return

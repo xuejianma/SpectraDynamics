@@ -10,6 +10,7 @@ from pages.sweep_wavelength_modules.set_angle import SetAngleTask
 from pages.sweep_wavelength_modules.set_wavelength import SetWavelengthTask
 from pages.sweep_wavelength_modules.set_actuator_position import SetActuatorPositionTask
 from pages.sweep_wavelength_modules.home_actuator import HomeActuatorTask
+from pages.sweep_wavelength_modules.home_ndfilter import HomeNDFilterTask
 from pages.sweep_wavelength_modules.sweep_wavelength import SweepWavelengthTask
 from pages.sweep_wavelength_modules.calibrate_actuator import CalibrateActuatorTask
 from pages.sweep_wavelength_modules.sweep_wavelength_boxcar_heatmap import SweepWavelengthBoxcarHeatmapTask
@@ -32,6 +33,7 @@ class SweepWavelength:
         self.set_actuator_position_task = SetActuatorPositionTask(
             self.button_set_actuator_position)
         self.home_actuator_task = HomeActuatorTask(self.button_home_actuator)
+        self.home_ndfilter_task = HomeNDFilterTask(self.button_home_ndfilter)
         self.save_oscilloscope = Save(frame_oscilloscope_3, VARIABLES.var_entry_sweep_wavelength_directory,
                                       VARIABLES.var_entry_sweep_wavelength_filename,
                                       substitute_dict={})
@@ -215,6 +217,9 @@ class SweepWavelength:
         self.button_set_angle = ttk.Button(
             frame_1_3, text="Set Angle", command=self.on_set_angle)
         self.button_set_angle.pack(side="top", anchor="w")
+        self.button_home_ndfilter = ttk.Button(
+            frame_1_3, text="Home", command=self.on_home_ndfilter)
+        self.button_home_ndfilter.pack(side="top", anchor="w")
         ttk.Label(frame_1_3, text="Note: Make sure power decreases\nwith NDFilter angle.",
                   font="TkDefaultFont 8").pack(side="top", anchor="w")
         ttk.Label(frame_1_3, text="NDFilter Spin Relative Speed (default 1.0)").pack(
@@ -508,6 +513,9 @@ class SweepWavelength:
 
     def on_home_actuator(self):
         self.home_actuator_task.start()
+    
+    def on_home_ndfilter(self):
+        self.home_ndfilter_task.start()
 
     def browse_actuator_calibration_file(self):
         file_path = askopenfilename(
