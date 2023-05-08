@@ -66,11 +66,12 @@ class SweepWavelengthLockinSinglePowerTask(Task):
                 self.pause()
                 UTILS.push_notification("Paused due to low max power.")
             return
-        target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
-        VARIABLES.var_spinbox_target_angle.set(target_angle)
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
-        self.page.set_angle_task.task_loop()
+        if abs(target_power - curr_power) > 0.1 * target_power:
+            target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
+            LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
+            VARIABLES.var_spinbox_target_angle.set(target_angle)
+            self.page.set_angle_task.task_loop()
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding accurate target angle.")
         self.find_target_power_by_ndfilter()

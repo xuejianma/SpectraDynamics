@@ -174,10 +174,18 @@ class SweepWavelength:
         frame_lockin_heatmap_2_1.pack(side="left", anchor="n", padx=10)
         frame_lockin_heatmap_2_2 = ttk.Frame(frame_lockin_heatmap_2)
         frame_lockin_heatmap_2_2.pack(side="left", anchor="n", padx=10)
+        frame_lockin_heatmap_2_3 = ttk.Frame(frame_lockin_heatmap_2)
+        frame_lockin_heatmap_2_3.pack(side="left", anchor="n", padx=10)
+        frame_lockin_heatmap_2_4 = ttk.Frame(frame_lockin_heatmap_2)
+        frame_lockin_heatmap_2_4.pack(side="left", anchor="n", padx=10)
         frame_lockin_heatmap_3_1 = ttk.Frame(frame_lockin_heatmap_3)
         frame_lockin_heatmap_3_1.pack(side="left", anchor="n", padx=10)
         frame_lockin_heatmap_3_2 = ttk.Frame(frame_lockin_heatmap_3)
         frame_lockin_heatmap_3_2.pack(side="left", anchor="n", padx=10)
+        frame_lockin_heatmap_3_3 = ttk.Frame(frame_lockin_heatmap_3)
+        frame_lockin_heatmap_3_3.pack(side="left", anchor="n", padx=10)
+        frame_lockin_heatmap_3_4 = ttk.Frame(frame_lockin_heatmap_3)
+        frame_lockin_heatmap_3_4.pack(side="left", anchor="n", padx=10)
         ttk.Label(frame_1_1, text="Current Wavelength (nm):").pack(
             side="top", anchor="w")
         ttk.Entry(frame_1_1, state="readonly", textvariable=VARIABLES.var_entry_curr_wavelength).pack(
@@ -433,17 +441,33 @@ class SweepWavelength:
         ttk.Button(frame_lockin_heatmap_1, text="Browse",
                     command=self.browse_actuator_calibration_file).pack(side="left")
         ttk.Label(frame_lockin_heatmap_2_1,
-                    text="Current Ch1 (V-uW)").pack(side="top")
-        self.plot_lockin_curve_ch1 = Plot(frame_lockin_heatmap_2_1)
+                    text="Current Ch1 Trace (V-uW)").pack(side="top")
+        self.plot_lockin_curve_ch1_trace = Plot(frame_lockin_heatmap_2_1, figsize=(6, 2))
         ttk.Label(frame_lockin_heatmap_2_2,
-                    text="Current Ch2 (V-uW)").pack(side="top")
-        self.plot_lockin_curve_ch2 = Plot(frame_lockin_heatmap_2_2)
+                    text="Current Ch1 Retrace (V-uW)").pack(side="top")
+        self.plot_lockin_curve_ch1_retrace = Plot(frame_lockin_heatmap_2_2, figsize=(6, 2))
+        ttk.Label(frame_lockin_heatmap_2_3,
+                    text="Current Ch2 Trace (V-uW)").pack(side="top")
+        self.plot_lockin_curve_ch2_trace = Plot(frame_lockin_heatmap_2_3, figsize=(6, 2))
+        ttk.Label(frame_lockin_heatmap_2_4,
+                    text="Current Ch2 Retrace (V-uW)").pack(side="top")
+        self.plot_lockin_curve_ch2_retrace = Plot(frame_lockin_heatmap_2_4, figsize=(6, 2))
         ttk.Label(frame_lockin_heatmap_3_1,
-                    text="Ch1 Heatmap (uW-nm z:V)").pack(side="top")
-        self.plot_lockin_heatmap_ch1 = Plot(frame_lockin_heatmap_3_1)
+                    text="Ch1 Heatmap Trace (uW-nm z:V)").pack(side="top")
+        self.plot_lockin_heatmap_ch1_trace = Plot(frame_lockin_heatmap_3_1, figsize=(6, 2))
         ttk.Label(frame_lockin_heatmap_3_2,
-                    text="Ch2 Heatmap (uW-nm z:V)").pack(side="top")
-        self.plot_lockin_heatmap_ch2 = Plot(frame_lockin_heatmap_3_2)
+                    text="Ch1 Heatmap Retrace (uW-nm z:V)").pack(side="top")
+        self.plot_lockin_heatmap_ch1_retrace = Plot(frame_lockin_heatmap_3_2, figsize=(6, 2))
+        ttk.Label(frame_lockin_heatmap_3_3,
+                    text="Ch2 Heatmap Trace (uW-nm z:V)").pack(side="top")
+        self.plot_lockin_heatmap_ch2_trace = Plot(frame_lockin_heatmap_3_3, figsize=(6, 2))
+        ttk.Label(frame_lockin_heatmap_3_4,
+                    text="Ch2 Heatmap Retrace (uW-nm z:V)").pack(side="top")
+        self.plot_lockin_heatmap_ch2_retrace = Plot(frame_lockin_heatmap_3_4, figsize=(6, 2))
+        ttk.Label(frame_lockin_heatmap_4,
+                    text="Starting Angle (deg)").pack(side="top")
+        Spinbox(frame_lockin_heatmap_4, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_entry_heatmap_starting_angle).pack(side="top", pady=(0, 0))
         ttk.Label(frame_lockin_heatmap_4,
                     text="Ending Angle (deg)").pack(side="top")
         Spinbox(frame_lockin_heatmap_4, from_=0, to=float(

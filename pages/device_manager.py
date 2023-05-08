@@ -41,7 +41,7 @@ class DeviceManager:
             frame, orient="vertical", command=self.text_resources.yview)
         scrollbar.pack(side="left", fill="y")
         self.text_resources.configure(yscrollcommand=scrollbar.set)
-        ttk.Label(frame, text="Notification APP Token:").pack(
+        ttk.Label(frame, text="Notification API Token:").pack(
             side="top", anchor="w", padx=(100, 0), pady=(30, 0))
         ttk.Entry(frame, textvariable=VARIABLES.var_entry_notification_app_token,
                   width=50).pack(side="top", anchor="w", padx=(100, 0), pady=(0, 0))

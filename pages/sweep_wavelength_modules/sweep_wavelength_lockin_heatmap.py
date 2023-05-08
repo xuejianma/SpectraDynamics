@@ -43,9 +43,12 @@ class SweepWavelengthLockinHeatmapTask(Task):
         self.ndfilter_direction_positive = True
         self.calibrate_func = None
         self.wavelength_list = []
-        self.power_map = []
-        self.ch1_map = []
-        self.ch2_map = []
+        self.power_map_trace = []
+        self.power_map_retrace = []
+        self.ch1_map_trace = []
+        self.ch1_map_retrace = []
+        self.ch2_map_trace = []
+        self.ch2_map_retrace = []
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
@@ -56,8 +59,8 @@ class SweepWavelengthLockinHeatmapTask(Task):
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
         if self.ndfilter_direction_positive:
-            if abs(float(VARIABLES.var_entry_curr_angle.get())) > 0.1:
-                VARIABLES.var_spinbox_target_angle.set(0)
+            if abs(float(VARIABLES.var_entry_curr_angle.get()) - float(VARIABLES.var_entry_heatmap_starting_angle.get())) > 0.1:
+                VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_entry_heatmap_starting_angle.get())
                 self.page.set_angle_task.task_loop()
             VARIABLES.var_spinbox_target_angle.set(
                 float(VARIABLES.var_entry_heatmap_ending_angle.get()))
@@ -66,7 +69,7 @@ class SweepWavelengthLockinHeatmapTask(Task):
                 VARIABLES.var_spinbox_target_angle.set(
                     VARIABLES.var_entry_heatmap_ending_angle.get())
                 self.page.set_angle_task.task_loop()
-            VARIABLES.var_spinbox_target_angle.set(0)
+            VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_entry_heatmap_starting_angle.get())
         self.page.set_angle_task.start()
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Sweeping angles.")
@@ -98,29 +101,42 @@ class SweepWavelengthLockinHeatmapTask(Task):
             power_list = power_list[::-1]
             ch1_list = ch1_list[::-1]
             ch2_list = ch2_list[::-1]
-        self.wavelength_list.append(self.curr_wavelength)
-        self.power_map.append(power_list)
-        self.ch1_map.append(ch1_list)
-        self.ch2_map.append(ch2_list)
-        self.page.plot_lockin_curve_ch1.plot(power_list, ch1_list)
-        self.page.plot_lockin_curve_ch2.plot(power_list, ch2_list)
-        self.page.plot_lockin_heatmap_ch1.pcolormesh(
-            *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch1_map))
-        self.page.plot_lockin_heatmap_ch2.pcolormesh(
-            *self.pad_heatmap(self.wavelength_list, self.power_map, self.ch2_map))
-        self.save_data(power_list, ch1_list, ch2_list)
+        if not self.ndfilter_direction_positive:
+            self.wavelength_list.append(self.curr_wavelength)
+            self.power_map_trace.append(power_list)
+            self.ch1_map_trace.append(ch1_list)
+            self.ch2_map_trace.append(ch2_list)
+            self.page.plot_lockin_curve_ch1_trace.plot(power_list, ch1_list)
+            self.page.plot_lockin_curve_ch2_trace.plot(power_list, ch2_list)
+            self.page.plot_lockin_heatmap_ch1_trace.pcolormesh(
+                *self.pad_heatmap(self.wavelength_list, self.power_map_trace, self.ch1_map_trace))
+            self.page.plot_lockin_heatmap_ch2_trace.pcolormesh(
+                *self.pad_heatmap(self.wavelength_list, self.power_map_trace, self.ch2_map_trace))
+            self.save_data(power_list, ch1_list, ch2_list, trace=True)
+        else:
+            self.power_map_retrace.append(power_list)
+            self.ch1_map_retrace.append(ch1_list)
+            self.ch2_map_retrace.append(ch2_list)
+            self.page.plot_lockin_curve_ch1_retrace.plot(power_list, ch1_list)
+            self.page.plot_lockin_curve_ch2_retrace.plot(power_list, ch2_list)
+            self.page.plot_lockin_heatmap_ch1_retrace.pcolormesh(
+                *self.pad_heatmap(self.wavelength_list, self.power_map_retrace, self.ch1_map_retrace))
+            self.page.plot_lockin_heatmap_ch2_retrace.pcolormesh(
+                *self.pad_heatmap(self.wavelength_list, self.power_map_retrace, self.ch2_map_retrace))
+            self.save_data(power_list, ch1_list, ch2_list, trace=False)
         if not self.check_devices_valid():
             LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Invalid device(s).")
             self.pause()
             UTILS.push_notification("Paused due to invalid device(s).")
             return
-        if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
-            self.curr_wavelength += float(
-                VARIABLES.var_spinbox_sweep_step_size.get())
-        else:
-            self.curr_wavelength -= float(
-                VARIABLES.var_spinbox_sweep_step_size.get())
+        if self.ndfilter_direction_positive:
+            if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
+                self.curr_wavelength += float(
+                    VARIABLES.var_spinbox_sweep_step_size.get())
+            else:
+                self.curr_wavelength -= float(
+                    VARIABLES.var_spinbox_sweep_step_size.get())
         self.curr_wavelength = round(self.curr_wavelength, 6)
 
     def task_loop(self):
@@ -132,17 +148,18 @@ class SweepWavelengthLockinHeatmapTask(Task):
             UTILS.push_notification("Error: " + str(e))
             raise e
 
-    def save_data(self, power_list, ch1_list, ch2_list):
+    def save_data(self, power_list, ch1_list, ch2_list, trace=True):
         if self.check_stopping():
             return
+        suffix = "_trace" if trace else "_retrace"
         self.page.save_lockin_heatmap.data_dict["header"].append(
-            f"{self.curr_wavelength}nm_power")
+            f"{self.curr_wavelength}nm_power" + suffix)
         self.page.save_lockin_heatmap.data_dict["data"].append(power_list)
         self.page.save_lockin_heatmap.data_dict["header"].append(
-            f"{self.curr_wavelength}nm_ch1")
+            f"{self.curr_wavelength}nm_ch1" + suffix)
         self.page.save_lockin_heatmap.data_dict["data"].append(ch1_list)
         self.page.save_lockin_heatmap.data_dict["header"].append(
-            f"{self.curr_wavelength}nm_ch2")
+            f"{self.curr_wavelength}nm_ch2" + suffix)
         self.page.save_lockin_heatmap.data_dict["data"].append(ch2_list)
         self.page.save_lockin_heatmap.save(update_datetime=False)
 
@@ -178,8 +195,8 @@ class SweepWavelengthLockinHeatmapTask(Task):
             external_button_control.external_button_control = True
         if not self.page.read_power_task.is_running:
             self.page.turn_on_power_reading()
-        self.num = int(abs(float(VARIABLES.var_spinbox_sweep_end_wavelength.get()) - float(
-            VARIABLES.var_spinbox_sweep_start_wavelength.get()))) / float(VARIABLES.var_spinbox_sweep_step_size.get()) + 1
+        self.num = (int(abs(float(VARIABLES.var_spinbox_sweep_end_wavelength.get()) - float(
+            VARIABLES.var_spinbox_sweep_start_wavelength.get()))) / float(VARIABLES.var_spinbox_sweep_step_size.get()) + 1) * 2
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
@@ -222,9 +239,12 @@ class SweepWavelengthLockinHeatmapTask(Task):
         self.page.save_lockin_heatmap.reset()
         self.calibrate_func = None
         self.wavelength_list = []
-        self.power_map = []
-        self.ch1_map = []
-        self.ch2_map = []
+        self.power_map_trace = []
+        self.power_map_retrace = []
+        self.ch1_map_trace = []
+        self.ch1_map_retrace = []
+        self.ch2_map_trace = []
+        self.ch2_map_retrace = []
         self.ndfilter_direction_positive = True
         if not error:
             LOGGER.reset()
@@ -248,4 +268,5 @@ class SweepWavelengthLockinHeatmapTask(Task):
             [wavelength_list]*len(power_map_padded[0])).T
         signal_map_padded = np.array(signal_map_padded)
         xx, yy, z = wavelength_lists_padded, power_map_padded, signal_map_padded
+        print(xx, yy, z)
         return xx, yy, z

@@ -61,6 +61,7 @@ class Variables:
         self.var_entry_calibrate_actuator_directory = tk.StringVar()
         self.var_entry_calibrate_actuator_filename = tk.StringVar()
         self.var_entry_actuator_calibration_file = tk.StringVar()
+        self.var_entry_heatmap_starting_angle = tk.StringVar(value=0)
         self.var_entry_heatmap_ending_angle = tk.StringVar(value=0)
         self.var_entry_sweep_wavelength_boxcar_heatmap_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_boxcar_heatmap_filename = tk.StringVar()
