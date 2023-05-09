@@ -2,7 +2,7 @@ from pyvisa import ResourceManager
 from time import sleep, time
 from threading import Lock
 
-MAX_PERIOD = 0.2
+MAX_PERIOD = 0.05 # Amount of time to wait for the powermeter to get a reading by averaging within this period. Unit in seconds.
 
 class Powermeter:
 
@@ -45,7 +45,7 @@ class Powermeter:
                 sleep(1e-6)
             ret = power_sum / self.num
             t2 = time()
-            self.num = int(self.num * (self.max_period / (t2 - t1)))
+            self.num = max(int(self.num * (self.max_period / (t2 - t1))), 1)
         except Exception as e:
             raise e
         finally:

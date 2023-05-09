@@ -10,7 +10,7 @@ from equipments.lockin import Lockin, LockinSimulator
 from equipments.boxcar import Boxcar, BoxcarSimulator
 from datetime import datetime
 
-TEST_MODE = True
+TEST_MODE = False
 
 
 class Variables:

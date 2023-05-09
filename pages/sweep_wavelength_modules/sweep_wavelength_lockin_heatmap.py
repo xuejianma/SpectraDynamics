@@ -268,5 +268,4 @@ class SweepWavelengthLockinHeatmapTask(Task):
             [wavelength_list]*len(power_map_padded[0])).T
         signal_map_padded = np.array(signal_map_padded)
         xx, yy, z = wavelength_lists_padded, power_map_padded, signal_map_padded
-        print(xx, yy, z)
         return xx, yy, z
