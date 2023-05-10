@@ -79,7 +79,7 @@ class CalibrateNDFilterSinglePowerTask(Task):
 
         self.wavelength_list.append(self.curr_wavelength)
         self.angle_list.append(float(VARIABLES.var_entry_curr_angle.get()))
-        self.page.plot_calibrate_ndfilter_single_power.plot(self.angle_list, self.wavelength_list)
+        self.page.plot_calibrate_ndfilter_single_power.plot(self.wavelength_list, self.angle_list)
         self.save_data(self.wavelength_list, self.angle_list)
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
             self.curr_wavelength += float(
