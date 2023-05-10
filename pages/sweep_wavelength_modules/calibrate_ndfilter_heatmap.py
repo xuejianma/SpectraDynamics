@@ -9,7 +9,7 @@ import csv
 from scipy.interpolate import interp1d
 
 
-class CalibrateNDFilterTask(Task):
+class CalibrateNDFilterHeatmapTask(Task):
     def __init__(self, parent, page) -> None:
         super().__init__(parent)
         self.page = page
@@ -20,6 +20,7 @@ class CalibrateNDFilterTask(Task):
                                self.page.button_home_actuator,
                                self.page.spinbox_target_angle,
                                self.page.button_set_angle,
+                               self.page.button_home_ndfilter,
                                self.page.spinbox_sweep_start_wavelength,
                                self.page.spinbox_sweep_end_wavelength,
                                self.page.spinbox_sweep_step_size,
@@ -33,9 +34,9 @@ class CalibrateNDFilterTask(Task):
                                self.page.spinbox_sweep_actuator_explore_range_positive,
                                self.page.spinbox_sweep_actuator_explore_range_step_size,
                                self.page.spinbox_background_power,
-                               self.page.spinbox_calibrate_ndfilter_starting_angle,
-                               self.page.spinbox_calibrate_ndfilter_ending_angle,
-                               self.page.spinbox_calibrate_actuator_steps,
+                               self.page.spinbox_calibrate_ndfilter_heatmap_starting_angle,
+                               self.page.spinbox_calibrate_ndfilter_heatmap_ending_angle,
+                               self.page.spinbox_calibrate_ndfilter_heatmap_steps,
                                ]
         self.external_button_control_list = [
             self.page.set_wavelength_task,
@@ -70,12 +71,12 @@ class CalibrateNDFilterTask(Task):
             if (i+1) % (len(self.angle_list) / 50) == 0 or len(self.angle_list) <= 50:
                 LOGGER.log(
                     f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Angle sweeping: ({((i+1)/len(self.angle_list))*100:.2f}%)")
-                self.page.plot_calibrate_ndfilter_curve.plot(self.angle_list[:len(power_list)], power_list)
+                self.page.plot_calibrate_ndfilter_heatmap_curve.plot(self.angle_list[:len(power_list)], power_list)
             prev_time = time()
             self.page.set_angle_task.task_loop()
             curr_time = time()
             if curr_time - prev_time < MAX_PERIOD * 2:
-                print(f"sleeping {MAX_PERIOD * 2 - (curr_time - prev_time)}")
+                # print(f"sleeping {MAX_PERIOD * 2 - (curr_time - prev_time)}")
                 sleep(MAX_PERIOD * 2 - (curr_time - prev_time))
             power_list.append(float(VARIABLES.var_entry_curr_power.get()))
         self.wavelength_list.append(self.curr_wavelength)
@@ -102,13 +103,13 @@ class CalibrateNDFilterTask(Task):
     def save_data(self, angle_list, power_list):
         if self.check_stopping():
             return
-        if not self.page.save_calibrate_ndfilter.data_dict["header"]:
-            self.page.save_calibrate_ndfilter.data_dict["header"].append("angle")
-            self.page.save_calibrate_ndfilter.data_dict["data"].append(angle_list)
-        self.page.save_calibrate_ndfilter.data_dict["header"].append(
+        if not self.page.save_calibrate_ndfilter_heatmap.data_dict["header"]:
+            self.page.save_calibrate_ndfilter_heatmap.data_dict["header"].append("angle")
+            self.page.save_calibrate_ndfilter_heatmap.data_dict["data"].append(angle_list)
+        self.page.save_calibrate_ndfilter_heatmap.data_dict["header"].append(
             f"{self.curr_wavelength}")
-        self.page.save_calibrate_ndfilter.data_dict["data"].append(power_list)
-        self.page.save_calibrate_ndfilter.save(update_datetime=False)
+        self.page.save_calibrate_ndfilter_heatmap.data_dict["data"].append(power_list)
+        self.page.save_calibrate_ndfilter_heatmap.save(update_datetime=False)
 
     def check_devices_valid(self):
         return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
@@ -136,14 +137,14 @@ class CalibrateNDFilterTask(Task):
                 "Please wait for the actuator to finish homing before starting a sweep.")
             return
         starting_angle = float(
-            VARIABLES.var_spinbox_calibrate_ndfilter_starting_angle.get())
+            VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle.get())
         ending_angle = float(
-            VARIABLES.var_spinbox_calibrate_ndfilter_ending_angle.get())
+            VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_ending_angle.get())
         if starting_angle > ending_angle:
             LOGGER.log(
                 "Starting angle cannot be larger than ending angle.")
             return
-        steps = int(VARIABLES.var_spinbox_calibrate_ndfilter_steps.get())
+        steps = int(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_steps.get())
         self.angle_list = list(np.logspace(0,np.log(ending_angle - starting_angle + 1)/np.log(10), steps) + starting_angle - 1)
         for widget in self.on_off_widgets:
             widget.config(state="disabled")
@@ -156,11 +157,11 @@ class CalibrateNDFilterTask(Task):
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            self.page.save_calibrate_ndfilter.update_datetime()
+            self.page.save_calibrate_ndfilter_heatmap.update_datetime()
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
-                LOGGER.log("Please select a calibration file.")
+                LOGGER.log("Please select a valid actuator calibration file.")
                 return
             try:
                 with open(calibrate_file, 'r') as f:
@@ -192,7 +193,7 @@ class CalibrateNDFilterTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
-        self.page.save_calibrate_ndfilter.reset()
+        self.page.save_calibrate_ndfilter_heatmap.reset()
         self.calibrate_func = None
         self.wavelength_list = []
         self.angle_list = []

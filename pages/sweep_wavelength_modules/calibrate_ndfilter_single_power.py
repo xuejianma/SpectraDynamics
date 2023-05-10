@@ -9,7 +9,7 @@ import csv
 from scipy.interpolate import interp1d
 
 
-class SweepWavelengthBoxcarSinglePowerTask(Task):
+class CalibrateNDFilterSinglePowerTask(Task):
     def __init__(self, parent, page) -> None:
         super().__init__(parent)
         self.page = page
@@ -43,7 +43,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         ]
         self.calibrate_func = None
         self.wavelength_list = []
-        self.ch1_list = []
+        self.angle_list = []
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
@@ -53,6 +53,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
+        
         sleep(MAX_PERIOD*2)
         curr_power = float(VARIABLES.var_entry_curr_power.get())
         curr_angle = float(VARIABLES.var_entry_curr_angle.get())
@@ -66,36 +67,20 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
                 self.pause()
                 UTILS.push_notification("Paused due to low max power.")
             return
-        target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
-        VARIABLES.var_spinbox_target_angle.set(target_angle)
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
-        self.page.set_angle_task.task_loop()
+        if abs(target_power - curr_power) > 0.1 * target_power:
+            target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
+            LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
+            VARIABLES.var_spinbox_target_angle.set(target_angle)
+            self.page.set_angle_task.task_loop()
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding accurate target angle.")
         self.find_target_power_by_ndfilter()
-        num_of_acquisitions = int(VARIABLES.var_spinbox_boxcar_single_power_number_of_data_acquisitions.get())
-        time_interval = float(VARIABLES.var_spinbox_boxcar_single_power_time_interval.get())
-        boxcar_ch1_voltage_sum = 0.0
-        LOGGER.log(
-                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Acquiring data.")
-        for _ in range(num_of_acquisitions):
-            if self.check_stopping():
-                return
-            sleep(time_interval)
-            boxcar_ch1_voltage_sum += float(INSTANCES.boxcar.get_voltage())
-        if self.check_stopping():
-            return
+
         self.wavelength_list.append(self.curr_wavelength)
-        self.ch1_list.append(boxcar_ch1_voltage_sum / num_of_acquisitions)
-        self.page.plot_boxcar_single_power.plot(self.wavelength_list, self.ch1_list)
-        self.save_data(self.wavelength_list, self.ch1_list)
-        if not self.check_devices_valid():
-            LOGGER.log(
-                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Invalid device(s).")
-            self.pause()
-            UTILS.push_notification("Paused due to invalid device(s).")
-            return
+        self.angle_list.append(float(VARIABLES.var_entry_curr_angle.get()))
+        self.page.plot_calibrate_ndfilter_single_power.plot(self.angle_list, self.wavelength_list)
+        self.save_data(self.wavelength_list, self.angle_list)
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
             self.curr_wavelength += float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
@@ -113,18 +98,22 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
             UTILS.push_notification("Error: " + str(e))
             raise e
 
-    def save_data(self, wavelength_list, ch1_list):
+    def save_data(self, wavelength_list, angle_list):
         if self.check_stopping():
             return
-        if not self.page.save_boxcar_single_power.data_dict["header"]:
-            self.page.save_boxcar_single_power.data_dict["header"].append("wavelength")
-            self.page.save_boxcar_single_power.data_dict["header"].append("ch1")
-        self.page.save_boxcar_single_power.data_dict["data"] = [wavelength_list, ch1_list]
-        self.page.save_boxcar_single_power.save(update_datetime=False)
+        if not self.page.save_calibrate_ndfilter_single_power.data_dict["header"]:
+            self.page.save_calibrate_ndfilter_single_power.data_dict["header"].append("wavelength")
+            self.page.save_calibrate_ndfilter_single_power.data_dict["header"].append("angle")
+            self.page.save_calibrate_ndfilter_single_power.data_dict["data"].append(wavelength_list)
+            self.page.save_calibrate_ndfilter_single_power.data_dict["data"].append(angle_list)
+        else:
+            self.page.save_calibrate_ndfilter_single_power.data_dict["data"][0] = wavelength_list
+            self.page.save_calibrate_ndfilter_single_power.data_dict["data"][1] = angle_list
+        self.page.save_calibrate_ndfilter_single_power.save(update_datetime=False)
 
     def check_devices_valid(self):
         return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
-            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and INSTANCES.boxcar.valid
+            and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid
 
     def start(self):
         if not self.check_devices_valid():
@@ -158,7 +147,7 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
         if self.status != PAUSED:
             self.curr_wavelength = float(
                 VARIABLES.var_spinbox_sweep_start_wavelength.get())
-            self.page.save_boxcar_single_power.update_datetime()
+            self.page.save_calibrate_ndfilter_single_power.update_datetime()
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
@@ -194,10 +183,10 @@ class SweepWavelengthBoxcarSinglePowerTask(Task):
             widget.config(state="normal")
         for external_button_control in self.external_button_control_list:
             external_button_control.external_button_control = False
-        self.page.save_boxcar_single_power.reset()
+        self.page.save_calibrate_ndfilter_single_power.reset()
         self.calibrate_func = None
         self.wavelength_list = []
-        self.ch1_list = []
+        self.angle_list = []
         if not error:
             LOGGER.reset()
 

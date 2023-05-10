@@ -20,6 +20,7 @@ class SweepWavelengthLockinSinglePowerTask(Task):
                                self.page.button_home_actuator,
                                self.page.spinbox_target_angle,
                                self.page.button_set_angle,
+                               self.page.button_home_ndfilter,
                                self.page.spinbox_sweep_start_wavelength,
                                self.page.spinbox_sweep_end_wavelength,
                                self.page.spinbox_sweep_step_size,
@@ -33,6 +34,7 @@ class SweepWavelengthLockinSinglePowerTask(Task):
                                self.page.spinbox_sweep_actuator_explore_range_positive,
                                self.page.spinbox_sweep_actuator_explore_range_step_size,
                                self.page.spinbox_background_power,
+                               self.page.checkbutton_lockin_single_power_use_calibrated_ndfilter_file,
                                ]
         self.external_button_control_list = [
             self.page.set_wavelength_task,
@@ -41,6 +43,7 @@ class SweepWavelengthLockinSinglePowerTask(Task):
             self.page.home_actuator_task,
         ]
         self.calibrate_func = None
+        self.calibrate_ndfilter_func = None
         self.wavelength_list = []
         self.ch1_list = []
         self.ch2_list = []
@@ -53,28 +56,35 @@ class SweepWavelengthLockinSinglePowerTask(Task):
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
-        sleep(MAX_PERIOD*2)
-        curr_power = float(VARIABLES.var_entry_curr_power.get())
-        curr_angle = float(VARIABLES.var_entry_curr_angle.get())
-        angle_offset = float(VARIABLES.var_spinbox_single_power_ndfilter_offset_angle.get())
-        max_power = self.predict_max_power(curr_power, curr_angle, angle_offset) if curr_angle > angle_offset else float(VARIABLES.var_entry_curr_power.get())
-        target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
-        if  max_power < target_power:
+        if VARIABLES.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file.get():
+            sleep(MAX_PERIOD*2)
+            curr_power = float(VARIABLES.var_entry_curr_power.get())
+            curr_angle = float(VARIABLES.var_entry_curr_angle.get())
+            angle_offset = float(VARIABLES.var_spinbox_single_power_ndfilter_offset_angle.get())
+            max_power = self.predict_max_power(curr_power, curr_angle, angle_offset) if curr_angle > angle_offset else float(VARIABLES.var_entry_curr_power.get())
+            target_power = float(VARIABLES.var_spinbox_sweep_target_power.get())
+            if  max_power < target_power:
+                LOGGER.log(
+                    "[Sweep Paused] Current max power is lower than target power. Please adjust actuator position to reach large enough max power before resuming.")
+                if self.status == RUNNING:
+                    self.pause()
+                    UTILS.push_notification("Paused due to low max power.")
+                return
+            if abs(target_power - curr_power) > 0.1 * target_power:
+                target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
+                LOGGER.log(
+                    f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
+                VARIABLES.var_spinbox_target_angle.set(target_angle)
+                self.page.set_angle_task.task_loop()
             LOGGER.log(
-                "[Sweep Paused] Current max power is lower than target power. Please adjust actuator position to reach large enough max power before resuming.")
-            if self.status == RUNNING:
-                self.pause()
-                UTILS.push_notification("Paused due to low max power.")
-            return
-        if abs(target_power - curr_power) > 0.1 * target_power:
-            target_angle = round(self.predict_angle(target_power, max_power, angle_offset), 6)
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding accurate target angle.")
+            self.find_target_power_by_ndfilter()
+        else:
+            target_angle = self.calibrate_ndfilter_func(self.curr_wavelength)
             LOGGER.log(
-                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to predicted angle {target_angle} deg.")
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated ND filter angle {target_angle} deg.")
             VARIABLES.var_spinbox_target_angle.set(target_angle)
             self.page.set_angle_task.task_loop()
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Finding accurate target angle.")
-        self.find_target_power_by_ndfilter()
         num_of_acquisitions = int(VARIABLES.var_spinbox_lockin_single_power_number_of_data_acquisitions.get())
         time_interval = float(VARIABLES.var_spinbox_lockin_single_power_time_interval.get())
         lockin_ch1_voltage_sum = 0.0
@@ -169,7 +179,7 @@ class SweepWavelengthLockinSinglePowerTask(Task):
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
-                LOGGER.log("Please select a calibration file.")
+                LOGGER.log("Please select a valid actuator calibration file.")
                 return
             try:
                 with open(calibrate_file, 'r') as f:
@@ -181,6 +191,24 @@ class SweepWavelengthLockinSinglePowerTask(Task):
                         wavelength.append(float(row[0]))
                         position.append(float(row[1]))
                     self.calibrate_func = interp1d(wavelength, position)
+            except Exception as e:
+                LOGGER.log(e)
+                return
+        if not self.calibrate_ndfilter_func:
+            calibrate_file = VARIABLES.var_entry_ndfilter_calibration_file.get()
+            if calibrate_file == "":
+                LOGGER.log("Please select a valid NDFilter calibration file.")
+                return
+            try:
+                with open(calibrate_file, 'r') as f:
+                    reader = csv.reader(f)
+                    next(reader)
+                    angle = []
+                    position = []
+                    for row in reader:
+                        angle.append(float(row[0]))
+                        position.append(float(row[1]))
+                    self.calibrate_ndfilter_func = interp1d(angle, position)
             except Exception as e:
                 LOGGER.log(e)
                 return

@@ -20,6 +20,7 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
                                self.page.button_home_actuator,
                                self.page.spinbox_target_angle,
                                self.page.button_set_angle,
+                               self.page.button_home_ndfilter,
                                self.page.spinbox_sweep_start_wavelength,
                                self.page.spinbox_sweep_end_wavelength,
                                self.page.spinbox_sweep_step_size,
@@ -175,7 +176,7 @@ class SweepWavelengthBoxcarHeatmapTask(Task):
         if not self.calibrate_func:
             calibrate_file = VARIABLES.var_entry_actuator_calibration_file.get()
             if calibrate_file == "":
-                LOGGER.log("Please select a calibration file.")
+                LOGGER.log("Please select a valid actuator calibration file.")
                 return
             try:
                 with open(calibrate_file, 'r') as f:

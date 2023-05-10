@@ -14,17 +14,17 @@ from pages.sweep_wavelength_modules.home_ndfilter import HomeNDFilterTask
 from pages.sweep_wavelength_modules.sweep_wavelength import SweepWavelengthTask
 from pages.sweep_wavelength_modules.calibrate_actuator import CalibrateActuatorTask
 from pages.sweep_wavelength_modules.sweep_wavelength_boxcar_heatmap import SweepWavelengthBoxcarHeatmapTask
-from pages.sweep_wavelength_modules.calibrate_ndfilter import CalibrateNDFilterTask
+from pages.sweep_wavelength_modules.calibrate_ndfilter_heatmap import CalibrateNDFilterHeatmapTask
 from pages.sweep_wavelength_modules.sweep_wavelength_boxcar_single_power import SweepWavelengthBoxcarSinglePowerTask
 from pages.sweep_wavelength_modules.sweep_wavelength_lockin_single_power import SweepWavelengthLockinSinglePowerTask
 from pages.sweep_wavelength_modules.sweep_wavelength_lockin_heatmap import SweepWavelengthLockinHeatmapTask
-
+from pages.sweep_wavelength_modules.calibrate_ndfilter_single_power import CalibrateNDFilterSinglePowerTask
 
 class SweepWavelength:
     def __init__(self, parent) -> None:
         self.frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_heapmap_3, \
-            frame_calibrate_ndfilter_3, frame_boxcar_single_power_3, frame_lockin_single_power_3, \
-            frame_lockin_heatmap_4 \
+            frame_calibrate_ndfilter_heatmap_3, frame_boxcar_single_power_3, frame_lockin_single_power_3, \
+            frame_lockin_heatmap_4, frame_calibrate_ndfilter_single_power_3 \
             = self.set_frame(parent)
         self.set_angle_task = SetAngleTask(self.button_set_angle)
         self.read_power_task = ReadPowerTask(self.button_power)
@@ -43,9 +43,12 @@ class SweepWavelength:
         self.save_boxcar_heatmap = Save(frame_boxcar_heapmap_3, VARIABLES.var_entry_sweep_wavelength_boxcar_heatmap_directory,
                                         VARIABLES.var_entry_sweep_wavelength_boxcar_heatmap_filename,
                                         substitute_dict={})
-        self.save_calibrate_ndfilter = Save(frame_calibrate_ndfilter_3, VARIABLES.var_entry_calibrate_ndfilter_directory,
-                                            VARIABLES.var_entry_calibrate_ndfilter_filename,
+        self.save_calibrate_ndfilter_heatmap = Save(frame_calibrate_ndfilter_heatmap_3, VARIABLES.var_entry_calibrate_ndfilter_heatmap_directory,
+                                            VARIABLES.var_entry_calibrate_ndfilter_heatmap_filename,
                                             substitute_dict={})
+        self.save_calibrate_ndfilter_single_power = Save(frame_calibrate_ndfilter_single_power_3, VARIABLES.var_entry_calibrate_ndfilter_single_power_directory,
+                                        VARIABLES.var_entry_calibrate_ndfilter_single_power_filename,
+                                        substitute_dict={'power': VARIABLES.var_spinbox_sweep_target_power.get()})
         self.save_boxcar_single_power = Save(frame_boxcar_single_power_3, VARIABLES.var_entry_sweep_wavelength_boxcar_single_power_directory,
                                              VARIABLES.var_entry_sweep_wavelength_boxcar_single_power_filename,
                                              substitute_dict={'power': VARIABLES.var_spinbox_sweep_target_power.get()})
@@ -58,7 +61,8 @@ class SweepWavelength:
         SweepWavelengthTask(frame_oscilloscope_3, self)
         CalibrateActuatorTask(frame_calibrate_actuator_2, self)
         SweepWavelengthBoxcarHeatmapTask(frame_boxcar_heapmap_3, self)
-        CalibrateNDFilterTask(frame_calibrate_ndfilter_3, self)
+        CalibrateNDFilterHeatmapTask(frame_calibrate_ndfilter_heatmap_3, self)
+        CalibrateNDFilterSinglePowerTask(frame_calibrate_ndfilter_single_power_3, self)
         SweepWavelengthBoxcarSinglePowerTask(frame_boxcar_single_power_3, self)
         SweepWavelengthLockinSinglePowerTask(frame_lockin_single_power_3, self)
         SweepWavelengthLockinHeatmapTask(frame_lockin_heatmap_4, self)
@@ -77,8 +81,10 @@ class SweepWavelength:
         frame_calibrate_actuator.pack(side="top", anchor="w", padx=10, pady=10)
         frame_boxcar_heapmap = ttk.Frame(tabControl)
         frame_boxcar_heapmap.pack(side="top", anchor="w", padx=10, pady=10)
-        frame_calibrate_ndfilter = ttk.Frame(tabControl)
-        frame_calibrate_ndfilter.pack(side="top", anchor="w", padx=10, pady=10)
+        frame_calibrate_ndfilter_heatmap = ttk.Frame(tabControl)
+        frame_calibrate_ndfilter_heatmap.pack(side="top", anchor="w", padx=10, pady=10)
+        frame_calibrate_ndfilter_single_power = ttk.Frame(tabControl)
+        frame_calibrate_ndfilter_single_power.pack(side="top", anchor="w", padx=10, pady=10)
         frame_boxcar_single_power = ttk.Frame(tabControl)
         frame_boxcar_single_power.pack(
             side="top", anchor="w", padx=10, pady=10)
@@ -89,7 +95,8 @@ class SweepWavelength:
         frame_lockin_heatmap.pack(side="top", anchor="w", padx=10, pady=10)
         tabControl.add(frame_oscilloscope, text="Oscilloscope")
         tabControl.add(frame_calibrate_actuator, text="Calibrate Actuator")
-        tabControl.add(frame_calibrate_ndfilter, text="Calibrate NDFilter")
+        tabControl.add(frame_calibrate_ndfilter_heatmap, text="Calibrate NDFilter (Heatmap)")
+        tabControl.add(frame_calibrate_ndfilter_single_power, text="Calibrate NDFilter (Single Power)")
         tabControl.add(frame_boxcar_heapmap, text="Boxcar (Heatmap)")
         tabControl.add(frame_boxcar_single_power, text="Boxcar (Single Power)")
         tabControl.add(frame_lockin_single_power,
@@ -112,12 +119,18 @@ class SweepWavelength:
         frame_boxcar_heapmap_2.pack(side="top", anchor="n", padx=10)
         frame_boxcar_heapmap_3 = ttk.Frame(frame_boxcar_heapmap)
         frame_boxcar_heapmap_3.pack(side="top", anchor="n", padx=10)
-        frame_calibrate_ndfilter_1 = ttk.Frame(frame_calibrate_ndfilter)
-        frame_calibrate_ndfilter_1.pack(side="top", anchor="n", padx=10)
-        frame_calibrate_ndfilter_2 = ttk.Frame(frame_calibrate_ndfilter)
-        frame_calibrate_ndfilter_2.pack(side="top", anchor="n", padx=10)
-        frame_calibrate_ndfilter_3 = ttk.Frame(frame_calibrate_ndfilter)
-        frame_calibrate_ndfilter_3.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_ndfilter_heatmap_1 = ttk.Frame(frame_calibrate_ndfilter_heatmap)
+        frame_calibrate_ndfilter_heatmap_1.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_ndfilter_heatmap_2 = ttk.Frame(frame_calibrate_ndfilter_heatmap)
+        frame_calibrate_ndfilter_heatmap_2.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_ndfilter_heatmap_3 = ttk.Frame(frame_calibrate_ndfilter_heatmap)
+        frame_calibrate_ndfilter_heatmap_3.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_ndfilter_single_power_1 = ttk.Frame(frame_calibrate_ndfilter_single_power)
+        frame_calibrate_ndfilter_single_power_1.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_ndfilter_single_power_2 = ttk.Frame(frame_calibrate_ndfilter_single_power)
+        frame_calibrate_ndfilter_single_power_2.pack(side="top", anchor="n", padx=10)
+        frame_calibrate_ndfilter_single_power_3 = ttk.Frame(frame_calibrate_ndfilter_single_power)
+        frame_calibrate_ndfilter_single_power_3.pack(side="top", anchor="n", padx=10)
         frame_boxcar_single_power_1 = ttk.Frame(frame_boxcar_single_power)
         frame_boxcar_single_power_1.pack(side="top", anchor="n", padx=10)
         frame_boxcar_single_power_2 = ttk.Frame(frame_boxcar_single_power)
@@ -162,10 +175,10 @@ class SweepWavelength:
         frame_boxcar_heapmap_2_1.pack(side="left", anchor="n", padx=10)
         frame_boxcar_heapmap_2_2 = ttk.Frame(frame_boxcar_heapmap_2)
         frame_boxcar_heapmap_2_2.pack(side="left", anchor="n", padx=10)
-        frame_calibrate_ndfilter_2_1 = ttk.Frame(frame_calibrate_ndfilter_2)
-        frame_calibrate_ndfilter_2_1.pack(side="left", anchor="n", padx=10)
-        frame_calibrate_ndfilter_2_2 = ttk.Frame(frame_calibrate_ndfilter_2)
-        frame_calibrate_ndfilter_2_2.pack(side="left", anchor="n", padx=10)
+        frame_calibrate_ndfilter_heatmap_2_1 = ttk.Frame(frame_calibrate_ndfilter_heatmap_2)
+        frame_calibrate_ndfilter_heatmap_2_1.pack(side="left", anchor="n", padx=10)
+        frame_calibrate_ndfilter_heatmap_2_2 = ttk.Frame(frame_calibrate_ndfilter_heatmap_2)
+        frame_calibrate_ndfilter_heatmap_2_2.pack(side="left", anchor="n", padx=10)
         frame_lockin_single_power_2_1 = ttk.Frame(frame_lockin_single_power_2)
         frame_lockin_single_power_2_1.pack(side="left", anchor="n", padx=10)
         frame_lockin_single_power_2_2 = ttk.Frame(frame_lockin_single_power_2)
@@ -345,36 +358,52 @@ class SweepWavelength:
                   text="Ending Angle (deg)").pack(side="top")
         Spinbox(frame_boxcar_heapmap_3, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_entry_heatmap_ending_angle).pack(side="top", pady=(0, 10))
-        ttk.Label(frame_calibrate_ndfilter_1, text="Path to actuator calibration file").pack(
+        ttk.Label(frame_calibrate_ndfilter_heatmap_1, text="Path to actuator calibration file").pack(
             side="left")
-        ttk.Entry(frame_calibrate_ndfilter_1, textvariable=VARIABLES.var_entry_actuator_calibration_file,
+        ttk.Entry(frame_calibrate_ndfilter_heatmap_1, textvariable=VARIABLES.var_entry_actuator_calibration_file,
                   width=60).pack(side="left")
-        ttk.Button(frame_calibrate_ndfilter_1, text="Browse",
+        ttk.Button(frame_calibrate_ndfilter_heatmap_1, text="Browse",
                    command=self.browse_actuator_calibration_file).pack(side="left")
-        ttk.Label(frame_calibrate_ndfilter_2_1,
+        ttk.Label(frame_calibrate_ndfilter_heatmap_2_1,
                   text="Power vs NDfilter (uW-degree)").pack(side="top")
-        self.plot_calibrate_ndfilter_curve = Plot(frame_calibrate_ndfilter_2_1)
-        ttk.Label(frame_calibrate_ndfilter_2_2,
+        self.plot_calibrate_ndfilter_heatmap_curve = Plot(frame_calibrate_ndfilter_heatmap_2_1)
+        ttk.Label(frame_calibrate_ndfilter_heatmap_2_2,
                   text="Power vs NDfilter Heatmap (degree-nm z:uW)").pack(side="top")
         self.plot_calibrate_ndfilter_heatmap = Plot(
-            frame_calibrate_ndfilter_2_2)
-        ttk.Label(frame_calibrate_ndfilter_3,
+            frame_calibrate_ndfilter_heatmap_2_2)
+        ttk.Label(frame_calibrate_ndfilter_heatmap_3,
                   text="Starting Angle with max power (deg)").pack(side="top")
-        self.spinbox_calibrate_ndfilter_starting_angle = Spinbox(frame_calibrate_ndfilter_3, from_=0, to=float(
-            "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_starting_angle)
-        self.spinbox_calibrate_ndfilter_starting_angle.pack(
+        self.spinbox_calibrate_ndfilter_heatmap_starting_angle = Spinbox(frame_calibrate_ndfilter_heatmap_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle)
+        self.spinbox_calibrate_ndfilter_heatmap_starting_angle.pack(
             side="top", pady=(0, 0))
-        ttk.Label(frame_calibrate_ndfilter_3,
+        ttk.Label(frame_calibrate_ndfilter_heatmap_3,
                   text="Ending Angle (deg)").pack(side="top")
-        self.spinbox_calibrate_ndfilter_ending_angle = Spinbox(frame_calibrate_ndfilter_3, from_=0, to=float(
-            "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_ending_angle)
-        self.spinbox_calibrate_ndfilter_ending_angle.pack(
+        self.spinbox_calibrate_ndfilter_heatmap_ending_angle = Spinbox(frame_calibrate_ndfilter_heatmap_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_ending_angle)
+        self.spinbox_calibrate_ndfilter_heatmap_ending_angle.pack(
             side="top", pady=(0, 0))
-        ttk.Label(frame_calibrate_ndfilter_3,
+        ttk.Label(frame_calibrate_ndfilter_heatmap_3,
                   text="Steps (steps will be taken in exp scale, default 100)").pack(side="top")
-        self.spinbox_calibrate_actuator_steps = Spinbox(frame_calibrate_ndfilter_3, from_=0, to=float(
-            "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_steps)
-        self.spinbox_calibrate_actuator_steps.pack(side="top", pady=(0, 10))
+        self.spinbox_calibrate_ndfilter_heatmap_steps = Spinbox(frame_calibrate_ndfilter_heatmap_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_steps)
+        self.spinbox_calibrate_ndfilter_heatmap_steps.pack(side="top", pady=(0, 10))
+        ttk.Label(frame_calibrate_ndfilter_single_power_1, text="Path to actuator calibration file").pack(
+            side="left")
+        ttk.Entry(frame_calibrate_ndfilter_single_power_1, textvariable=VARIABLES.var_entry_actuator_calibration_file,
+                    width=60).pack(side="left")
+        ttk.Button(frame_calibrate_ndfilter_single_power_1, text="Browse",
+                    command=self.browse_actuator_calibration_file).pack(side="left")
+        ttk.Label(frame_calibrate_ndfilter_single_power_2,
+                    text="Angle vs Wavelength (degree-nm)").pack(side="top")
+        self.plot_calibrate_ndfilter_single_power = Plot(frame_calibrate_ndfilter_single_power_2)
+        ttk.Label(frame_calibrate_ndfilter_single_power_3,
+                    text="Remember to set \"Target Power (uW)\" above").pack(side="top")
+        ttk.Label(frame_calibrate_ndfilter_single_power_3,
+                    text="NDFilter offset angle (for accurate angle prediction from power)").pack(side="top")
+        self.spinbox_calibrate_ndfilter_single_power_offset_angle = Spinbox(frame_calibrate_ndfilter_single_power_3, from_=0, to=float(
+            "inf"), textvariable=VARIABLES.var_spinbox_single_power_ndfilter_offset_angle)
+        self.spinbox_calibrate_ndfilter_single_power_offset_angle.pack(side="top", pady=(0, 10))
         ttk.Label(frame_boxcar_single_power_1, text="Path to actuator calibration file").pack(
             side="left")
         ttk.Entry(frame_boxcar_single_power_1, textvariable=VARIABLES.var_entry_actuator_calibration_file,
@@ -414,6 +443,16 @@ class SweepWavelength:
         ttk.Label(frame_lockin_single_power_2_2,
                     text="Ch2 (V-nm)").pack(side="top")
         self.plot_lockin_single_power_ch2 = Plot(frame_lockin_single_power_2_2)
+        self.checkbutton_lockin_single_power_use_calibrated_ndfilter_file = ttk.Checkbutton(
+            frame_lockin_single_power_3, text="Use calibrated ndfilter file", variable=VARIABLES.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file)
+        self.checkbutton_lockin_single_power_use_calibrated_ndfilter_file.pack(
+            side="top")
+        ttk.Label(frame_lockin_single_power_3,
+                    text="Path to calibrated ndfilter file").pack(side="top")
+        ttk.Entry(frame_lockin_single_power_3, textvariable=VARIABLES.var_entry_ndfilter_calibration_file,
+                    width=60).pack(side="top")
+        ttk.Button(frame_lockin_single_power_3, text="Browse",
+                    command=self.browse_lockin_single_power_calibrated_ndfilter_file).pack(side="top")
         ttk.Label(frame_lockin_single_power_3,
                   text="Remember to set \"Target Power (uW)\" above").pack(side="top")
         ttk.Label(frame_lockin_single_power_3,
@@ -473,8 +512,8 @@ class SweepWavelength:
         Spinbox(frame_lockin_heatmap_4, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_entry_heatmap_ending_angle).pack(side="top", pady=(0, 10))
         return frame, frame_oscilloscope_3, frame_calibrate_actuator_2, frame_boxcar_heapmap_3,\
-            frame_calibrate_ndfilter_3, frame_boxcar_single_power_3, frame_lockin_single_power_3, \
-            frame_lockin_heatmap_4
+            frame_calibrate_ndfilter_heatmap_3, frame_boxcar_single_power_3, frame_lockin_single_power_3, \
+            frame_lockin_heatmap_4, frame_calibrate_ndfilter_single_power_3
 
     def toggle_power_reading(self):
         if self.read_power_task.is_running:
@@ -546,3 +585,9 @@ class SweepWavelength:
             title="Select Actuator Calibration File", filetypes=(("csv files", "*.csv"),))
         if file_path:
             VARIABLES.var_entry_actuator_calibration_file.set(file_path)
+
+    def browse_lockin_single_power_calibrated_ndfilter_file(self):
+        file_path = askopenfilename(
+            title="Select Calibrated ND Filter File", filetypes=(("csv files", "*.csv"),))
+        if file_path:
+            VARIABLES.var_entry_ndfilter_calibration_file.set(file_path)

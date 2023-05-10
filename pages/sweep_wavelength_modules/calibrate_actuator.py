@@ -16,6 +16,7 @@ class CalibrateActuatorTask(Task):
                         self.page.button_home_actuator,
                         self.page.spinbox_target_angle,
                         self.page.button_set_angle,
+                        self.page.button_home_ndfilter,
                         self.page.spinbox_sweep_start_wavelength,
                         self.page.spinbox_sweep_end_wavelength,
                         self.page.spinbox_sweep_step_size,

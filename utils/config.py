@@ -10,7 +10,7 @@ from equipments.lockin import Lockin, LockinSimulator
 from equipments.boxcar import Boxcar, BoxcarSimulator
 from datetime import datetime
 
-TEST_MODE = False
+TEST_MODE = True
 
 
 class Variables:
@@ -65,14 +65,18 @@ class Variables:
         self.var_entry_heatmap_ending_angle = tk.StringVar(value=0)
         self.var_entry_sweep_wavelength_boxcar_heatmap_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_boxcar_heatmap_filename = tk.StringVar()
-        self.var_spinbox_calibrate_ndfilter_starting_angle = tk.StringVar(value=0)
-        self.var_spinbox_calibrate_ndfilter_ending_angle = tk.StringVar(value=180)
-        self.var_spinbox_calibrate_ndfilter_steps = tk.StringVar(value=100)
-        self.var_entry_calibrate_ndfilter_directory = tk.StringVar()
-        self.var_entry_calibrate_ndfilter_filename = tk.StringVar()
+        self.var_spinbox_calibrate_ndfilter_heatmap_starting_angle = tk.StringVar(value=0)
+        self.var_spinbox_calibrate_ndfilter_heatmap_ending_angle = tk.StringVar(value=180)
+        self.var_spinbox_calibrate_ndfilter_heatmap_steps = tk.StringVar(value=100)
+        self.var_entry_calibrate_ndfilter_heatmap_directory = tk.StringVar()
+        self.var_entry_calibrate_ndfilter_heatmap_filename = tk.StringVar()
         self.var_spinbox_single_power_ndfilter_offset_angle = tk.StringVar(value=0)
+        self.var_entry_calibrate_ndfilter_single_power_directory = tk.StringVar()
+        self.var_entry_calibrate_ndfilter_single_power_filename = tk.StringVar()
         self.var_entry_sweep_wavelength_boxcar_single_power_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_boxcar_single_power_filename = tk.StringVar()
+        self.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file = tk.IntVar(value=0)
+        self.var_entry_ndfilter_calibration_file = tk.StringVar()
         self.var_entry_sweep_wavelength_lockin_single_power_directory = tk.StringVar()
         self.var_entry_sweep_wavelength_lockin_single_power_filename = tk.StringVar()
         self.var_spinbox_boxcar_single_power_time_interval = tk.StringVar(value=1)
