@@ -56,7 +56,7 @@ class SweepWavelengthLockinSinglePowerTask(Task):
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
-        if VARIABLES.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file.get():
+        if not VARIABLES.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file.get():
             sleep(MAX_PERIOD*2)
             curr_power = float(VARIABLES.var_entry_curr_power.get())
             curr_angle = float(VARIABLES.var_entry_curr_angle.get())
