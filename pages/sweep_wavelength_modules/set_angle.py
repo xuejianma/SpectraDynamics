@@ -11,8 +11,9 @@ class SetAngleTask():
         if not self.external_button_control:
             self.button_set_angle.config(state="disabled")
         try:
-            INSTANCES.ndfilter.set_angle(
-                float(VARIABLES.var_spinbox_target_angle.get()))
+            for angle in INSTANCES.ndfilter.set_angle(
+                    float(VARIABLES.var_spinbox_target_angle.get())):
+                VARIABLES.var_entry_curr_angle.set(round(angle, 6))
             VARIABLES.var_entry_curr_angle.set(
                 round(INSTANCES.ndfilter.get_angle(), 6))
         except Exception as e:

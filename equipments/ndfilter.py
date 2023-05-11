@@ -10,6 +10,7 @@ try:
 except:
     pass
 from time import sleep
+from equipments.powermeter import MAX_PERIOD
 
 
 class NDFilter:
@@ -33,12 +34,13 @@ class NDFilter:
     def set_angle(self, angle):
         self.motor.move_to(angle)
         while self.motor.is_in_motion:
-            sleep(0.1)
+            sleep(MAX_PERIOD)
+            yield self.get_angle()
     
     def home(self):
         self.motor.move_home()
         while self.motor.is_in_motion:
-            sleep(0.1)
+            sleep(MAX_PERIOD)
 
 
 class NDFilterSimulator:
@@ -53,10 +55,12 @@ class NDFilterSimulator:
     def set_angle(self, angle):
         direction = 1 if angle > self.angle else -1
         curr_angle = self.angle
-        steps = int(abs(angle - curr_angle) / 0.05)
+        delta = 1 * MAX_PERIOD / 0.1
+        steps = int(abs(angle - curr_angle) / delta)
         for _ in range(steps):
-            self.angle += 0.05 * direction
-            sleep(0.001)
+            self.angle += delta * direction
+            sleep(MAX_PERIOD)
+            yield self.get_angle()
         self.angle = angle
     
     def home(self):

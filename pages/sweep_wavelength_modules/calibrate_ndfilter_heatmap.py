@@ -37,6 +37,7 @@ class CalibrateNDFilterHeatmapTask(Task):
                                self.page.spinbox_calibrate_ndfilter_heatmap_starting_angle,
                                self.page.spinbox_calibrate_ndfilter_heatmap_ending_angle,
                                self.page.spinbox_calibrate_ndfilter_heatmap_steps,
+                               self.page.checkbutton_calibrate_ndfilter_heatmap_continuous,
                                ]
         self.external_button_control_list = [
             self.page.set_wavelength_task,
@@ -47,7 +48,8 @@ class CalibrateNDFilterHeatmapTask(Task):
         self.calibrate_func = None
         self.wavelength_list = []
         self.angle_list = []
-        self.power_lists = []
+        self.power_map = []
+        self.angle_map = []
 
     def task(self):
         pass
@@ -59,30 +61,45 @@ class CalibrateNDFilterHeatmapTask(Task):
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
-        VARIABLES.var_spinbox_target_angle.set(0)
+        VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle.get())
         LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to 0 degree.")
+            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to starting degree.")
         self.page.set_angle_task.task_loop()
         power_list = []
-        for i, angle in enumerate(self.angle_list):
-            if self.check_stopping():
-                return
-            VARIABLES.var_spinbox_target_angle.set(round(angle, 6))
-            if (i+1) % (len(self.angle_list) / 50) == 0 or len(self.angle_list) <= 50:
-                LOGGER.log(
-                    f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Angle sweeping: ({((i+1)/len(self.angle_list))*100:.2f}%)")
-                self.page.plot_calibrate_ndfilter_heatmap_curve.plot(self.angle_list[:len(power_list)], power_list)
-            prev_time = time()
-            self.page.set_angle_task.task_loop()
-            curr_time = time()
-            if curr_time - prev_time < MAX_PERIOD * 2:
-                # print(f"sleeping {MAX_PERIOD * 2 - (curr_time - prev_time)}")
-                sleep(MAX_PERIOD * 2 - (curr_time - prev_time))
-            power_list.append(float(VARIABLES.var_entry_curr_power.get()))
+        if not VARIABLES.var_checkbutton_calibrate_ndfilter_heatmap_continuous.get():
+            for i, angle in enumerate(self.angle_list):
+                if self.check_stopping():
+                    return
+                VARIABLES.var_spinbox_target_angle.set(round(angle, 6))
+                if (i+1) % (len(self.angle_list) / 50) == 0 or len(self.angle_list) <= 50:
+                    LOGGER.log(
+                        f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Angle sweeping: ({((i+1)/len(self.angle_list))*100:.2f}%)")
+                    self.page.plot_calibrate_ndfilter_heatmap_curve.plot(self.angle_list[:len(power_list)], power_list)
+                prev_time = time()
+                self.page.set_angle_task.task_loop()
+                curr_time = time()
+                if curr_time - prev_time < MAX_PERIOD * 2:
+                    # print(f"sleeping {MAX_PERIOD * 2 - (curr_time - prev_time)}")
+                    sleep(MAX_PERIOD * 2 - (curr_time - prev_time))
+                power_list.append(float(VARIABLES.var_entry_curr_power.get()))
+        else:
+            self.angle_list = []
+            VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_ending_angle.get())
+            sleep(MAX_PERIOD * 2)
+            self.page.set_angle_task.start()
+            LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Angle sweeping on-going...")
+            while self.page.set_angle_task.is_running:
+                self.angle_list.append(float(VARIABLES.var_entry_curr_angle.get()))
+                power_list.append(float(VARIABLES.var_entry_curr_power.get()))
+                sleep(MAX_PERIOD)
+            self.page.plot_calibrate_ndfilter_heatmap_curve.plot(self.angle_list, power_list)
+            
         self.wavelength_list.append(self.curr_wavelength)
-        self.power_lists.append(power_list)
-        self.page.plot_calibrate_ndfilter_heatmap.pcolormesh(self.wavelength_list, self.angle_list[:len(power_list)], np.array(self.power_lists).T)
+        self.angle_map.append(self.angle_list)
+        self.power_map.append(power_list)
         self.save_data(self.angle_list, power_list)
+        self.page.plot_calibrate_ndfilter_heatmap.pcolormesh(*self.pad_heatmap(self.wavelength_list, self.angle_map, self.power_map))
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
             self.curr_wavelength += float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
@@ -103,11 +120,12 @@ class CalibrateNDFilterHeatmapTask(Task):
     def save_data(self, angle_list, power_list):
         if self.check_stopping():
             return
-        if not self.page.save_calibrate_ndfilter_heatmap.data_dict["header"]:
-            self.page.save_calibrate_ndfilter_heatmap.data_dict["header"].append("angle")
-            self.page.save_calibrate_ndfilter_heatmap.data_dict["data"].append(angle_list)
         self.page.save_calibrate_ndfilter_heatmap.data_dict["header"].append(
-            f"{self.curr_wavelength}")
+            f"angle_{self.curr_wavelength}")
+        self.page.save_calibrate_ndfilter_heatmap.data_dict["header"].append(
+            f"power_{self.curr_wavelength}")
+        self.page.save_calibrate_ndfilter_heatmap.data_dict["data"].append(
+            angle_list)
         self.page.save_calibrate_ndfilter_heatmap.data_dict["data"].append(power_list)
         self.page.save_calibrate_ndfilter_heatmap.save(update_datetime=False)
 
@@ -197,7 +215,8 @@ class CalibrateNDFilterHeatmapTask(Task):
         self.calibrate_func = None
         self.wavelength_list = []
         self.angle_list = []
-        self.power_lists = []
+        self.power_map = []
+        self.angle_map = []
         if not error:
             LOGGER.reset()
 
@@ -205,3 +224,19 @@ class CalibrateNDFilterHeatmapTask(Task):
         super().after_complete()
         UTILS.push_notification("Sweep completed!")
 
+    def pad_heatmap(self, wavelength_list, angle_map, power_map):
+        max_length = max([len(sublist) for sublist in angle_map])
+        if angle_map[0][0] < angle_map[0][-1]:
+            edge_power = max([max(sublist) for sublist in angle_map])
+        else:
+            edge_power = min([min(sublist) for sublist in angle_map])
+        angle_map_padded = [np.concatenate((sublist, np.full(
+            max_length - len(sublist), edge_power))) for sublist in angle_map]
+        power_map_padded = [np.concatenate((sublist, np.full(
+            max_length - len(sublist), np.nan))) for sublist in power_map]
+        angle_map_padded = np.array(angle_map_padded)
+        wavelength_lists_padded = np.array(
+            [wavelength_list]*len(angle_map_padded[0])).T
+        power_map_padded = np.array(power_map_padded)
+        xx, yy, z = wavelength_lists_padded, angle_map_padded, power_map_padded
+        return xx, yy, z

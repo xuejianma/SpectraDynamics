@@ -388,6 +388,10 @@ class SweepWavelength:
         self.spinbox_calibrate_ndfilter_heatmap_steps = Spinbox(frame_calibrate_ndfilter_heatmap_3, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_steps)
         self.spinbox_calibrate_ndfilter_heatmap_steps.pack(side="top", pady=(0, 10))
+        self.checkbutton_calibrate_ndfilter_heatmap_continuous = ttk.Checkbutton(
+            frame_calibrate_ndfilter_heatmap_3, text="Sweep Angles Continuous Instead", variable=VARIABLES.var_checkbutton_calibrate_ndfilter_heatmap_continuous)
+        self.checkbutton_calibrate_ndfilter_heatmap_continuous.pack(
+            side="top", pady=(0, 10))
         ttk.Label(frame_calibrate_ndfilter_single_power_1, text="Path to actuator calibration file").pack(
             side="left")
         ttk.Entry(frame_calibrate_ndfilter_single_power_1, textvariable=VARIABLES.var_entry_actuator_calibration_file,

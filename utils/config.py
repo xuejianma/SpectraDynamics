@@ -68,6 +68,7 @@ class Variables:
         self.var_spinbox_calibrate_ndfilter_heatmap_starting_angle = tk.StringVar(value=0)
         self.var_spinbox_calibrate_ndfilter_heatmap_ending_angle = tk.StringVar(value=180)
         self.var_spinbox_calibrate_ndfilter_heatmap_steps = tk.StringVar(value=100)
+        self.var_checkbutton_calibrate_ndfilter_heatmap_continuous = tk.IntVar(value=0)
         self.var_entry_calibrate_ndfilter_heatmap_directory = tk.StringVar()
         self.var_entry_calibrate_ndfilter_heatmap_filename = tk.StringVar()
         self.var_spinbox_single_power_ndfilter_offset_angle = tk.StringVar(value=0)
