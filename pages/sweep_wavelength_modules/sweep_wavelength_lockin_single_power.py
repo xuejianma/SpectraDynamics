@@ -50,13 +50,15 @@ class SweepWavelengthLockinSinglePowerTask(Task):
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
-        self.page.set_wavelength_task.task_loop()
         VARIABLES.var_spinbox_target_actuator_position.set(
             self.calibrate_func(self.curr_wavelength))
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
-        self.page.set_actuator_position_task.task_loop()
+        self.page.set_wavelength_task.start()
+        self.page.set_actuator_position_task.start()
         if not VARIABLES.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file.get():
+            LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to wavelength and pre-calibrated actuator position.")
+            while self.page.set_wavelength_task.is_running or self.page.set_actuator_position_task.is_running:
+                sleep(0.1)
             sleep(MAX_PERIOD*2)
             curr_power = float(VARIABLES.var_entry_curr_power.get())
             curr_angle = float(VARIABLES.var_entry_curr_angle.get())
@@ -82,9 +84,12 @@ class SweepWavelengthLockinSinglePowerTask(Task):
         else:
             target_angle = self.calibrate_ndfilter_func(self.curr_wavelength)
             LOGGER.log(
-                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated ND filter angle {target_angle} deg.")
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to wavelength, pre-calibrated actuator position, and ND filter angle {target_angle} deg.")
             VARIABLES.var_spinbox_target_angle.set(target_angle)
-            self.page.set_angle_task.task_loop()
+            self.page.set_angle_task.start()
+            while self.page.set_wavelength_task.is_running or self.page.set_actuator_position_task.is_running or self.page.set_angle_task.is_running:
+                sleep(0.1)
+            sleep(MAX_PERIOD*2)
         num_of_acquisitions = int(VARIABLES.var_spinbox_lockin_single_power_number_of_data_acquisitions.get())
         time_interval = float(VARIABLES.var_spinbox_lockin_single_power_time_interval.get())
         lockin_ch1_voltage_sum = 0.0
