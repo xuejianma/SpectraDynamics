@@ -61,12 +61,12 @@ class CalibrateNDFilterHeatmapTask(Task):
         LOGGER.log(
             f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Go to pre-calibrated actuator position.")
         self.page.set_actuator_position_task.task_loop()
-        VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle.get())
-        LOGGER.log(
-            f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to starting degree.")
-        self.page.set_angle_task.task_loop()
         power_list = []
         if not VARIABLES.var_checkbutton_calibrate_ndfilter_heatmap_continuous.get():
+            VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle.get())
+            LOGGER.log(
+                f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to starting degree.")
+            self.page.set_angle_task.task_loop()
             for i, angle in enumerate(self.angle_list):
                 if self.check_stopping():
                     return
@@ -83,8 +83,21 @@ class CalibrateNDFilterHeatmapTask(Task):
                     sleep(MAX_PERIOD * 2 - (curr_time - prev_time))
                 power_list.append(float(VARIABLES.var_entry_curr_power.get()))
         else:
+            curr_angle = float(VARIABLES.var_entry_curr_angle.get())
+            starting_angle = float(
+                VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle.get())
+            ending_angle = float(
+                VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_ending_angle.get())
+            direction = 1# if abs(starting_angle - curr_angle) < abs(ending_angle - curr_angle) else -1
+            first_angle = starting_angle if direction == 1 else ending_angle
+            last_angle = ending_angle if direction == 1 else starting_angle
+            if abs(curr_angle - first_angle) > 0.1:
+                VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_starting_angle.get())
+                LOGGER.log(
+                    f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Going to starting degree.")
+                self.page.set_angle_task.task_loop()
             self.angle_list = []
-            VARIABLES.var_spinbox_target_angle.set(VARIABLES.var_spinbox_calibrate_ndfilter_heatmap_ending_angle.get())
+            VARIABLES.var_spinbox_target_angle.set(last_angle)
             sleep(MAX_PERIOD * 2)
             self.page.set_angle_task.start()
             LOGGER.log(
@@ -93,8 +106,12 @@ class CalibrateNDFilterHeatmapTask(Task):
                 self.angle_list.append(float(VARIABLES.var_entry_curr_angle.get()))
                 power_list.append(float(VARIABLES.var_entry_curr_power.get()))
                 sleep(MAX_PERIOD)
+            if direction == -1:
+                self.angle_list = self.angle_list[::-1]
+                power_list = power_list[::-1]
             self.page.plot_calibrate_ndfilter_heatmap_curve.plot(self.angle_list, power_list)
-            
+        if self.check_stopping():
+            return
         self.wavelength_list.append(self.curr_wavelength)
         self.angle_map.append(self.angle_list)
         self.power_map.append(power_list)
