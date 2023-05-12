@@ -50,9 +50,10 @@ class SweepWavelengthLockinSinglePowerTask(Task):
 
     def task(self):
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
-        VARIABLES.var_spinbox_target_actuator_position.set(
-            self.calibrate_func(self.curr_wavelength))
-        self.page.set_wavelength_task.start()
+        if self.i == 0 or abs(float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) - float(VARIABLES.var_spinbox_sweep_end_wavelength.get())) > 0.1:
+            VARIABLES.var_spinbox_target_actuator_position.set(
+                self.calibrate_func(self.curr_wavelength))
+            self.page.set_wavelength_task.start()
         self.page.set_actuator_position_task.start()
         if not VARIABLES.var_checkbutton_lockin_single_power_use_calibrated_ndfilter_file.get():
             LOGGER.log(
@@ -89,7 +90,6 @@ class SweepWavelengthLockinSinglePowerTask(Task):
             self.page.set_angle_task.start()
             while self.page.set_wavelength_task.is_running or self.page.set_actuator_position_task.is_running or self.page.set_angle_task.is_running:
                 sleep(0.1)
-            sleep(MAX_PERIOD*2)
         num_of_acquisitions = int(VARIABLES.var_spinbox_lockin_single_power_number_of_data_acquisitions.get())
         time_interval = float(VARIABLES.var_spinbox_lockin_single_power_time_interval.get())
         lockin_ch1_voltage_sum = 0.0
@@ -104,25 +104,32 @@ class SweepWavelengthLockinSinglePowerTask(Task):
             lockin_ch2_voltage_sum += float(INSTANCES.lockin_bottom.get_output())
         if self.check_stopping():
             return
-        self.wavelength_list.append(self.curr_wavelength)
-        self.ch1_list.append(lockin_ch1_voltage_sum / num_of_acquisitions)
-        self.ch2_list.append(lockin_ch2_voltage_sum / num_of_acquisitions)
-        self.page.plot_lockin_single_power_ch1.plot(self.wavelength_list, self.ch1_list)
-        self.page.plot_lockin_single_power_ch2.plot(self.wavelength_list, self.ch2_list)
-        self.save_data(self.wavelength_list, self.ch1_list, self.ch2_list)
         if not self.check_devices_valid():
             LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Invalid device(s).")
             self.pause()
             UTILS.push_notification("Paused due to invalid device(s).")
             return
+        curr_wavelength = self.curr_wavelength
         if float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) <= float(VARIABLES.var_spinbox_sweep_end_wavelength.get()):
-            self.curr_wavelength += float(
+            curr_wavelength += float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
         else:
-            self.curr_wavelength -= float(
+            curr_wavelength -= float(
                 VARIABLES.var_spinbox_sweep_step_size.get())
-        self.curr_wavelength = round(self.curr_wavelength, 6)
+        curr_wavelength = round(curr_wavelength, 6)
+        if self.i < self.num - 1:
+            VARIABLES.var_spinbox_target_actuator_position.set(
+                self.calibrate_func(curr_wavelength))
+            self.page.set_wavelength_task.start()
+        self.wavelength_list.append(self.curr_wavelength)
+        self.ch1_list.append(lockin_ch1_voltage_sum / num_of_acquisitions)
+        self.ch2_list.append(lockin_ch2_voltage_sum / num_of_acquisitions)
+        self.page.plot_lockin_single_power_ch1.plot(self.wavelength_list, self.ch1_list)
+        self.page.plot_lockin_single_power_ch2.plot(self.wavelength_list, self.ch2_list)
+        self.save_data(self.wavelength_list, self.ch1_list, self.ch2_list)
+        self.curr_wavelength = curr_wavelength
+
 
     def task_loop(self):
         try:
