@@ -47,8 +47,14 @@ class SweepWavelengthLockinSinglePowerTask(Task):
         self.wavelength_list = []
         self.ch1_list = []
         self.ch2_list = []
+        self.ch2_signal_thread_resource = [0.0]
+    
+    def get_ch2_in_thread(self):
+        self.ch2_signal_thread_resource[0] = float(INSTANCES.lockin_bottom.get_output())
 
     def task(self):
+        while self.page.set_wavelength_task.is_running or self.page.set_actuator_position_task.is_running or self.page.set_angle_task.is_running:
+            sleep(0.1)
         VARIABLES.var_spinbox_target_wavelength.set(self.curr_wavelength)
         if self.i == 0 or abs(float(VARIABLES.var_spinbox_sweep_start_wavelength.get()) - float(VARIABLES.var_spinbox_sweep_end_wavelength.get())) > 0.1:
             VARIABLES.var_spinbox_target_actuator_position.set(
@@ -96,12 +102,20 @@ class SweepWavelengthLockinSinglePowerTask(Task):
         lockin_ch2_voltage_sum = 0.0
         LOGGER.log(
                 f"[Sweeping - {VARIABLES.var_entry_curr_wavelength.get()} nm] Acquiring data.")
-        for _ in range(num_of_acquisitions):
-            if self.check_stopping():
-                return
-            sleep(time_interval)
-            lockin_ch1_voltage_sum += float(INSTANCES.lockin_top.get_output())
-            lockin_ch2_voltage_sum += float(INSTANCES.lockin_bottom.get_output())
+        if not VARIABLES.var_checkbutton_lockin_collect_data_with_niboard.get():
+            for _ in range(num_of_acquisitions):
+                if self.check_stopping():
+                    return
+                sleep(time_interval)
+                ch2_thread = Thread(target = self.get_ch2_in_thread)
+                ch2_thread.start()
+                lockin_ch1_voltage_sum += float(INSTANCES.lockin_top.get_output())
+                ch2_thread.join()
+                lockin_ch2_voltage_sum += self.ch2_signal_thread_resource[0]
+            lockin_ch1_voltage = lockin_ch1_voltage_sum / num_of_acquisitions
+            lockin_ch2_voltage = lockin_ch2_voltage_sum / num_of_acquisitions
+        else:
+            lockin_ch1_voltage, lockin_ch2_voltage = INSTANCES.lockin_niboard.get_outputs(num_of_acquisitions)
         if self.check_stopping():
             return
         if not self.check_devices_valid():
@@ -123,8 +137,8 @@ class SweepWavelengthLockinSinglePowerTask(Task):
                 self.calibrate_func(curr_wavelength))
             self.page.set_wavelength_task.start()
         self.wavelength_list.append(self.curr_wavelength)
-        self.ch1_list.append(lockin_ch1_voltage_sum / num_of_acquisitions)
-        self.ch2_list.append(lockin_ch2_voltage_sum / num_of_acquisitions)
+        self.ch1_list.append(lockin_ch1_voltage)
+        self.ch2_list.append(lockin_ch2_voltage)
         self.page.plot_lockin_single_power_ch1.plot(self.wavelength_list, self.ch1_list)
         self.page.plot_lockin_single_power_ch2.plot(self.wavelength_list, self.ch2_list)
         self.save_data(self.wavelength_list, self.ch1_list, self.ch2_list)
@@ -153,7 +167,8 @@ class SweepWavelengthLockinSinglePowerTask(Task):
     def check_devices_valid(self):
         return INSTANCES.monochromator.valid and INSTANCES.actuator.valid \
             and INSTANCES.ndfilter.valid and INSTANCES.powermeter.valid and \
-                INSTANCES.lockin_top.valid and INSTANCES.lockin_bottom.valid
+            INSTANCES.lockin_top.valid and INSTANCES.lockin_bottom.valid \
+            and INSTANCES.lockin_niboard.valid
 
     def start(self):
         if not self.check_devices_valid():

@@ -472,7 +472,9 @@ class SweepWavelength:
         self.spinbox_lockin_single_power_time_interval.pack(
             side="top", pady=(0, 0))
         ttk.Label(frame_lockin_single_power_3,
-                  text="Number of data acquisitions").pack(side="top")
+                  text="Number of data acquisitions (1000 points: use lockin - 10s, use NIBoard - 0.1s)").pack(side="top")
+        ttk.Checkbutton(frame_lockin_single_power_3, text="Use NIboard", variable=VARIABLES.var_checkbutton_lockin_collect_data_with_niboard).pack(
+            side="top")
         self.spinbox_lockin_single_power_number_of_data_acquisitions = Spinbox(frame_lockin_single_power_3, from_=0, to=float(
             "inf"), textvariable=VARIABLES.var_spinbox_lockin_single_power_number_of_data_acquisitions)
         self.spinbox_lockin_single_power_number_of_data_acquisitions.pack(

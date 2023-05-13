@@ -8,6 +8,7 @@ from equipments.actuator import Actuator, ActuatorSimulator
 from equipments.cwcontroller import CWController, CWControllerSimulator
 from equipments.lockin import Lockin, LockinSimulator
 from equipments.boxcar import Boxcar, BoxcarSimulator
+from equipments.lockin_niboard import LockinNIBoard, LockinNIBoardSimulator
 from datetime import datetime
 
 TEST_MODE = True
@@ -29,6 +30,7 @@ class Variables:
         self.id_lockin_bottom = tk.StringVar(
             value='USB0::0xB506::0x2000::004642')
         self.id_boxcar_niboard = tk.StringVar(value='NI6259')
+        self.id_lockin_niboard = tk.StringVar(value='NI6259')
         self.var_entry_lifetime_directory = tk.StringVar()
         self.var_entry_lifetime_filename = tk.StringVar()
         self.var_spinbox_lifetime_num = tk.StringVar(value=20)
@@ -116,6 +118,7 @@ class Variables:
         self.var_entry_setpoint_conversion_filename = tk.StringVar()
         self.var_entry_notification_app_token = tk.StringVar()
         self.var_entry_notification_user_key = tk.StringVar()
+        self.var_checkbutton_lockin_collect_data_with_niboard = tk.IntVar(value=0)
 
 
 class Instances:
@@ -140,7 +143,10 @@ class Instances:
             VARIABLES.id_lockin_top) if not TEST_MODE else LockinSimulator('top')
         self.lockin_bottom = Lockin(
             VARIABLES.id_lockin_bottom) if not TEST_MODE else LockinSimulator('bottom')
-        self.boxcar = Boxcar() if not TEST_MODE else BoxcarSimulator()
+        self.boxcar = Boxcar(
+            VARIABLES.id_boxcar_niboard) if not TEST_MODE else BoxcarSimulator()
+        self.lockin_niboard = LockinNIBoard(
+            VARIABLES.id_lockin_niboard) if not TEST_MODE else LockinNIBoardSimulator()
         # Initialize readings from equipments after instances are created.
         self.initialize_readings()
 
