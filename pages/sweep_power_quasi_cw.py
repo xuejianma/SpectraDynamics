@@ -73,7 +73,7 @@ class SweepPowerQuasiCWTask(Task):
         self.data_ch2 = []
 
     def task(self):
-        INSTANCES.ndfilter.set_angle(self.curr_angle)
+        INSTANCES.ndfilter.set_angle_direct(self.curr_angle)
         VARIABLES.var_entry_curr_angle.set(INSTANCES.ndfilter.get_angle())
         sleep(INSTANCES.powermeter.max_period + 0.2)
         self.curr_power = round(INSTANCES.powermeter.get_power_uW() - float(VARIABLES.var_spinbox_background_power.get()), 6)

@@ -37,6 +37,11 @@ class NDFilter:
             sleep(MAX_PERIOD)
             yield self.get_angle()
     
+    def set_angle_direct(self, angle):
+        self.motor.move_to(angle)
+        while self.motor.is_in_motion:
+            sleep(MAX_PERIOD)
+    
     def home(self):
         self.motor.move_home()
         while self.motor.is_in_motion:
