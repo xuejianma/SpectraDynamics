@@ -76,7 +76,7 @@ class Save:
                     max_length = max(len(sublist)
                                      for sublist in self.data_dict["data"])
                     regular_array = np.array(
-                        [sublist + [''] * (max_length - len(sublist)) for sublist in self.data_dict["data"]])
+                        [list(sublist) + [''] * (max_length - len(sublist)) for sublist in self.data_dict["data"]])
                     writer.writerows(np.asarray(regular_array).T)
             except Exception as e:
                 LOGGER.log("Error saving to {}: ".format(filename) + str(e))
